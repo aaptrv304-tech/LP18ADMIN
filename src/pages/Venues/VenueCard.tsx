@@ -10,21 +10,9 @@ interface VenueCardProps {
     visits_count?: number
     created_at: string
   }
-  onEdit?: (venue: any) => void
-  onDelete?: (venue: any) => void
 }
 
-export default function VenueCard({ venue, onEdit, onDelete }: VenueCardProps) {
-  const handleEdit = () => {
-    if (onEdit) onEdit(venue)
-  }
-
-  const handleDelete = () => {
-    if (onDelete && confirm(`Удалить заведение "${venue.name}"?`)) {
-      onDelete(venue)
-    }
-  }
-
+export default function VenueCard({ venue }: VenueCardProps) {
   return (
     <div style={{
       backgroundColor: 'white',
@@ -32,61 +20,16 @@ export default function VenueCard({ venue, onEdit, onDelete }: VenueCardProps) {
       padding: '24px',
       boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
       transition: 'transform 0.2s, box-shadow 0.2s',
-      position: 'relative'
     }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-4px)'
-        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
-      }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-4px)'
+      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)'
+      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
+    }}
     >
-      {/* Кнопки действий */}
-      <div style={{
-        position: 'absolute',
-        top: '16px',
-        right: '16px',
-        display: 'flex',
-        gap: '8px'
-      }}>
-        <button
-          onClick={handleEdit}
-          style={{
-            padding: '8px 12px',
-            backgroundColor: COLORS.primary + '15',
-            color: COLORS.primary,
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primary + '25'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary + '15'}
-        >
-          ✏️ Редактировать
-        </button>
-        <button
-          onClick={handleDelete}
-          style={{
-            padding: '8px 12px',
-            backgroundColor: '#dc354515',
-            color: '#dc3545',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc354525'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dc354515'}
-        >
-          🗑️ Удалить
-        </button>
-      </div>
-
       {/* Изображение заведения */}
       {venue.image_url ? (
         <div style={{
