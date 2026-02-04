@@ -25,10 +25,10 @@ export const adminApi = {
   
   // Заведения
   getVenues: () => api.get('/admin/venues'),
-  getVenueById: (id: string) => api.get(`/admin/venues/${id}`),
+  getVenueById: (id: number) => api.get(`/admin/venues/${id}`),
   createVenue: (data: any) => api.post('/admin/venues', data),
-  updateVenue: (id: string,  any) => api.put(`/admin/venues/${id}`, data),
-  deleteVenue: (id: string) => api.delete(`/admin/venues/${id}`),
+  updateVenue: (id: number, data: any) => api.put(`/admin/venues/${id}`, data),
+  deleteVenue: (id: number) => api.delete(`/admin/venues/${id}`),
   
   // Пользователи
   getUsers: () => api.get('/admin/users'),

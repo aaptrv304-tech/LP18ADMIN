@@ -4,6 +4,7 @@ import { useAuth } from './hooks/useAuth'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Venues from './pages/Venues'
 import Layout from './components/layout/Layout'
 
 // Защищённый роут
@@ -61,6 +62,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/venues"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Venues />
               </Layout>
             </ProtectedRoute>
           }

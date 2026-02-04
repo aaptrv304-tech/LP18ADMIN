@@ -3,7 +3,7 @@
 // ========================================
 
 export interface Admin {
-  id: string
+  id: number
   telegram_id?: string
   email: string
   business_name: string
@@ -29,17 +29,23 @@ export interface AuthState {
 }
 
 // ========================================
-// Заведения (Веню)
+// Заведения (Venues/Businesses)
 // ========================================
 
 export interface Venue {
-  id: string
+  id: number
   name: string
   address: string
   description?: string
   image_url?: string
+  admin_id: number
   created_at: string
   updated_at: string
+  // Дополнительные поля (если есть)
+  phone?: string
+  website?: string
+  rating?: number
+  visits_count?: number
 }
 
 // ========================================
