@@ -36,15 +36,6 @@ export default function VenuesList() {
     }
   }
 
-  const handleDelete = async (venue: Venue) => {
-    try {
-      await adminApi.deleteVenue(venue.id)
-      setVenues(venues.filter(v => v.id !== venue.id))
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Ошибка удаления заведения')
-    }
-  }
-
   if (loading) {
     return (
       <div style={{
@@ -116,23 +107,6 @@ export default function VenuesList() {
 
   return (
     <div>
-      <h2 style={{
-        fontSize: '24px',
-        color: COLORS.text,
-        marginBottom: '24px',
-        fontWeight: '600'
-      }}>
-        🏪 Мои заведения
-      </h2>
-
-      <p style={{
-        color: '#666',
-        marginBottom: '24px',
-        fontSize: '14px'
-      }}>
-        Всего заведений: <strong>{venues.length}</strong>
-      </p>
-
       {/* Список заведений */}
       <div style={{
         display: 'grid',
@@ -143,7 +117,6 @@ export default function VenuesList() {
           <VenueCard
             key={venue.id}
             venue={venue}
-            onDelete={handleDelete}
           />
         ))}
       </div>

@@ -121,12 +121,6 @@ export default function DashboardStats() {
       icon: '🗓️',
       color: '#9C27B0'
     },
-    {
-      title: 'Активные пользователи',
-      value: stats.active_users,
-      icon: '⭐',
-      color: '#E91E63'
-    },
   ]
 
   return (
@@ -134,39 +128,39 @@ export default function DashboardStats() {
       {/* Карточки статистики */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '24px',
-        marginBottom: '30px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '20px',
+        marginBottom: '24px'
       }}>
         {statCards.map((card) => (
           <div key={card.title} style={{
             backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '32px 28px',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+            borderRadius: '10px',
+            padding: '24px 20px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
             transition: 'transform 0.2s, box-shadow 0.2s',
             cursor: 'pointer'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-6px)'
-            e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,0,0,0.12)'
+            e.currentTarget.style.transform = 'translateY(-4px)'
+            e.currentTarget.style.boxShadow = '0 5px 18px rgba(0,0,0,0.1)'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
+            e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.05)'
           }}
           >
             <div style={{
-              fontSize: '40px',
-              marginBottom: '16px',
+              fontSize: '32px',
+              marginBottom: '12px',
               color: card.color
             }}>
               {card.icon}
             </div>
             <div style={{
-              fontSize: '14px',
+              fontSize: '13px',
               color: '#666',
-              marginBottom: '10px',
+              marginBottom: '8px',
               fontWeight: '500',
               textTransform: 'uppercase',
               letterSpacing: '0.5px'
@@ -174,7 +168,7 @@ export default function DashboardStats() {
               {card.title}
             </div>
             <div style={{
-              fontSize: '36px',
+              fontSize: '28px',
               fontWeight: 'bold',
               color: COLORS.text,
               lineHeight: '1.2'
@@ -189,26 +183,26 @@ export default function DashboardStats() {
       <button
         onClick={fetchStats}
         style={{
-          padding: '12px 32px',
+          padding: '10px 24px',
           backgroundColor: COLORS.primary,
           color: 'white',
           border: 'none',
-          borderRadius: '8px',
+          borderRadius: '6px',
           cursor: 'pointer',
           fontWeight: '600',
-          fontSize: '15px',
+          fontSize: '14px',
           transition: 'all 0.3s',
-          boxShadow: '0 4px 12px rgba(255, 107, 53, 0.3)'
+          boxShadow: '0 3px 10px rgba(255, 107, 53, 0.3)'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = COLORS.primaryDark
           e.currentTarget.style.transform = 'translateY(-2px)'
-          e.currentTarget.style.boxShadow = '0 6px 16px rgba(255, 107, 53, 0.4)'
+          e.currentTarget.style.boxShadow = '0 5px 14px rgba(255, 107, 53, 0.4)'
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.backgroundColor = COLORS.primary
           e.currentTarget.style.transform = 'translateY(0)'
-          e.currentTarget.style.boxShadow = '0 4px 12px rgba(255, 107, 53, 0.3)'
+          e.currentTarget.style.boxShadow = '0 3px 10px rgba(255, 107, 53, 0.3)'
         }}
       >
         🔄 Обновить данные

@@ -30,43 +30,6 @@ export default function VenueCard({ venue }: VenueCardProps) {
       e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
     }}
     >
-      {/* Изображение заведения */}
-      {venue.image_url ? (
-        <div style={{
-          width: '100%',
-          height: '160px',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          overflow: 'hidden',
-          backgroundColor: '#f5f5f5'
-        }}>
-          <img
-            src={venue.image_url}
-            alt={venue.name}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover'
-            }}
-          />
-        </div>
-      ) : (
-        <div style={{
-          width: '100%',
-          height: '160px',
-          borderRadius: '8px',
-          marginBottom: '16px',
-          backgroundColor: COLORS.primary + '08',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '60px',
-          color: COLORS.primary + '40'
-        }}>
-          🏪
-        </div>
-      )}
-
       {/* Название */}
       <h3 style={{
         fontSize: '20px',
@@ -105,20 +68,21 @@ export default function VenueCard({ venue }: VenueCardProps) {
       <div style={{
         borderTop: `1px solid ${COLORS.border}`,
         paddingTop: '16px',
+        fontSize: '14px',
+        color: '#666',
         display: 'flex',
-        gap: '24px',
-        fontSize: '13px',
-        color: '#666'
+        flexDirection: 'column',
+        gap: '8px'
       }}>
-        <div>
-          <div style={{ fontWeight: '600', color: COLORS.text }}>👥</div>
-          <div>{venue.visits_count || 0}</div>
-          <div style={{ fontSize: '11px', marginTop: '2px' }}>посещений</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>👥</span>
+          <span style={{ fontWeight: '600' }}>{venue.visits_count || 0}</span>
+          <span>посещений</span>
         </div>
-        <div>
-          <div style={{ fontWeight: '600', color: COLORS.text }}>📅</div>
-          <div>{new Date(venue.created_at).toLocaleDateString('ru-RU')}</div>
-          <div style={{ fontSize: '11px', marginTop: '2px' }}>создано</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '16px' }}>📅</span>
+          <span>{new Date(venue.created_at).toLocaleDateString('ru-RU')}</span>
+          <span>создано</span>
         </div>
       </div>
     </div>
