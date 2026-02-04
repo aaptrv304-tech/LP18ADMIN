@@ -5,6 +5,7 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Venues from './pages/Venues'
+import VenueDetailPage from './pages/VenueDetail'
 import Layout from './components/layout/Layout'
 
 // Защищённый роут
@@ -72,6 +73,16 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Venues />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/venues/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <VenueDetailPage />
               </Layout>
             </ProtectedRoute>
           }

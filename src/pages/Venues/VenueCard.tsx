@@ -1,4 +1,5 @@
 import { COLORS } from '../Landing'
+import { useNavigate } from 'react-router-dom'
 
 interface VenueCardProps {
   venue: {
@@ -13,22 +14,31 @@ interface VenueCardProps {
 }
 
 export default function VenueCard({ venue }: VenueCardProps) {
+  const navigate = useNavigate()
+
+  const handleClick = () => {
+    navigate(`/venues/${venue.id}`)
+  }
+
   return (
-    <div style={{
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      padding: '24px',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-      transition: 'transform 0.2s, box-shadow 0.2s',
-    }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.transform = 'translateY(-4px)'
-      e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.transform = 'translateY(0)'
-      e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
-    }}
+    <div 
+      onClick={handleClick}
+      style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        cursor: 'pointer'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.1)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.06)'
+      }}
     >
       {/* Название */}
       <h3 style={{
