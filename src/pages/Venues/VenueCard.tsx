@@ -54,7 +54,7 @@ export default function VenueCard({ venue }: VenueCardProps) {
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        marginBottom: '12px',
+        marginBottom: '16px',
         color: '#666',
         fontSize: '14px'
       }}>
@@ -62,27 +62,17 @@ export default function VenueCard({ venue }: VenueCardProps) {
         <span>{venue.address}</span>
       </div>
 
-      {/* Описание */}
-      {venue.description && (
-        <p style={{
-          fontSize: '14px',
-          color: '#666',
-          marginBottom: '16px',
-          lineHeight: '1.5'
-        }}>
-          {venue.description}
-        </p>
-      )}
-
       {/* Статистика */}
       <div style={{
         borderTop: `1px solid ${COLORS.border}`,
-        paddingTop: '16px',
+        borderBottom: `1px solid ${COLORS.border}`,
+        padding: '12px 0',
         fontSize: '14px',
         color: '#666',
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px'
+        gap: '8px',
+        marginBottom: '16px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '16px' }}>👥</span>
@@ -95,6 +85,18 @@ export default function VenueCard({ venue }: VenueCardProps) {
           <span>создано</span>
         </div>
       </div>
+
+      {/* Описание */}
+      {venue.description && (
+        <p style={{
+          fontSize: '14px',
+          color: '#666',
+          lineHeight: '1.5',
+          marginBottom: '0'
+        }}>
+          {venue.description}
+        </p>
+      )}
     </div>
   )
 }
