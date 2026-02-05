@@ -2,6 +2,16 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { adminApi } from '../../services/api'
 import { COLORS } from '../Landing'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faStore, 
+  faMapMarkerAlt, 
+  faPhone, 
+  faCalendar, 
+  faUsers, 
+  faArrowLeft,
+  faChartLine
+} from '@fortawesome/free-solid-svg-icons'
 
 interface Venue {
   id: number
@@ -12,6 +22,7 @@ interface Venue {
   phone?: string
   visits_count?: number
   created_at: string
+  is_active: boolean
 }
 
 export default function VenueDetail() {
@@ -75,52 +86,59 @@ export default function VenueDetail() {
     )
   }
 
+  // Статистика для примера (в реальности нужно получать с бэкенда)
+  const stats = {
+    today: Math.floor(Math.random() * 20),
+    week: Math.floor(Math.random() * 80),
+    month: Math.floor(Math.random() * 250)
+  }
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
       {/* Кнопка назад */}
       <button
         onClick={handleBack}
         style={{
-          marginBottom: '24px',
-          padding: '10px 20px',
-          backgroundColor: '#f0f0f0',
+          marginBottom: '32px',
+          padding: '12px 24px',
+          backgroundColor: '#f5f5f5',
           color: '#333',
           border: 'none',
-          borderRadius: '6px',
+          borderRadius: '12px',
           cursor: 'pointer',
-          fontWeight: '500',
+          fontWeight: '600',
           fontSize: '14px',
-          transition: 'all 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-      >
-        ← Назад к списку заведений
-      </button>
-
-      {/* Карточка заведения */}
-      <div style={{
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        padding: '32px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-      }}>
-        {/* Иконка и название */}
-        <div style={{
+          transition: 'all 0.2s',
           display: 'flex',
           alignItems: 'center',
-          marginBottom: '24px',
-          gap: '16px'
-        }}>
+          gap: '8px'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+      >
+        <FontAwesomeIcon icon={faArrowLeft} />
+        <span>Назад к списку заведений</span>
+      </button>
+
+      {/* Заголовок */}
+      <div style={{ marginBottom: '32px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
           <div style={{
-            fontSize: '48px',
+            width: '64px',
+            height: '64px',
+            backgroundColor: COLORS.primary + '15',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '32px',
             color: COLORS.primary
           }}>
-            🏪
+            <FontAwesomeIcon icon={faStore} />
           </div>
           <div>
             <h1 style={{
-              fontSize: '28px',
+              fontSize: '32px',
               fontWeight: 'bold',
               color: COLORS.text,
               margin: 0,
@@ -128,165 +146,245 @@ export default function VenueDetail() {
             }}>
               {venue.name}
             </h1>
-            <p style={{ color: '#666', margin: 0, fontSize: '14px' }}>
-              ID: #{venue.id}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#666', fontSize: '14px' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <FontAwesomeIcon icon={faMapMarkerAlt} />
+                <span>{venue.address || 'Адрес не указан'}</span>
+              </span>
+              {venue.phone && (
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <FontAwesomeIcon icon={faPhone} />
+                  <span>{venue.phone}</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Информация о заведении */}
+      {/* Статистика */}
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: '700',
+          color: COLORS.text,
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <FontAwesomeIcon icon={faChartLine} />
+          <span>Статистика</span>
+        </h2>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '24px',
-          marginBottom: '32px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '20px'
         }}>
-          {/* Адрес */}
-          <div>
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#999', 
-              marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontWeight: '600'
-            }}>
-              Адрес
-            </div>
-            <div style={{ 
-              fontSize: '16px', 
-              color: COLORS.text,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span>📍</span>
-              <span>{venue.address || 'Не указан'}</span>
-            </div>
-          </div>
+          <StatCard 
+            title="Посещений сегодня" 
+            value={stats.today} 
+            icon={faCalendar} 
+            color="#2196F3"
+            bgColor="rgba(33, 150, 243, 0.1)"
+          />
+          <StatCard 
+            title="Посещений за неделю" 
+            value={stats.week} 
+            icon={faCalendar} 
+            color="#FF9800"
+            bgColor="rgba(255, 152, 0, 0.1)"
+          />
+          <StatCard 
+            title="Посещений за месяц" 
+            value={stats.month} 
+            icon={faCalendar} 
+            color="#9C27B0"
+            bgColor="rgba(156, 39, 176, 0.1)"
+          />
+          <StatCard 
+            title="Всего посещений" 
+            value={venue.visits_count || 0} 
+            icon={faUsers} 
+            color="#4CAF50"
+            bgColor="rgba(76, 175, 80, 0.1)"
+          />
+        </div>
+      </div>
 
-          {/* Категория */}
-          {venue.category && (
-            <div>
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#999', 
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                fontWeight: '600'
-              }}>
-                Категория
-              </div>
-              <div style={{ fontSize: '16px', color: COLORS.text }}>
-                {venue.category}
-              </div>
-            </div>
-          )}
-
-          {/* Телефон */}
-          {venue.phone && (
-            <div>
-              <div style={{ 
-                fontSize: '12px', 
-                color: '#999', 
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                fontWeight: '600'
-              }}>
-                Телефон
-              </div>
-              <div style={{ 
-                fontSize: '16px', 
-                color: COLORS.text,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span>📱</span>
-                <span>{venue.phone}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Дата создания */}
-          <div>
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#999', 
-              marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontWeight: '600'
-            }}>
-              Создано
-            </div>
-            <div style={{ 
-              fontSize: '16px', 
-              color: COLORS.text,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span>📅</span>
-              <span>{new Date(venue.created_at).toLocaleDateString('ru-RU', {
+      {/* Информация о заведении */}
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: '700',
+          color: COLORS.text,
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <FontAwesomeIcon icon={faStore} />
+          <span>Информация о заведении</span>
+        </h2>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          border: `1px solid ${COLORS.border}`,
+          padding: '24px'
+        }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
+            <InfoItem 
+              label="ID заведения" 
+              value={`#${venue.id}`} 
+              icon={faCalendar}
+            />
+            <InfoItem 
+              label="Категория" 
+              value={venue.category || 'Не указана'} 
+              icon={faStore}
+            />
+            <InfoItem 
+              label="Дата создания" 
+              value={new Date(venue.created_at).toLocaleDateString('ru-RU', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
-              })}</span>
-            </div>
+              })} 
+              icon={faCalendar}
+            />
           </div>
 
-          {/* Посещения */}
-          <div>
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#999', 
-              marginBottom: '8px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontWeight: '600'
-            }}>
-              Посещений
+          {/* Описание */}
+          {venue.description && (
+            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: `1px solid ${COLORS.border}` }}>
+              <div style={{ 
+                fontSize: '13px', 
+                color: '#999', 
+                marginBottom: '12px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600'
+              }}>
+                Описание
+              </div>
+              <div style={{ 
+                fontSize: '15px', 
+                color: '#666',
+                lineHeight: '1.6',
+                whiteSpace: 'pre-wrap'
+              }}>
+                {venue.description}
+              </div>
             </div>
-            <div style={{ 
-              fontSize: '24px', 
-              fontWeight: 'bold',
-              color: COLORS.primary,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}>
-              <span>👥</span>
-              <span>{venue.visits_count || 0}</span>
-            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Последние посещения (заглушка) */}
+      <div>
+        <h2 style={{
+          fontSize: '20px',
+          fontWeight: '700',
+          color: COLORS.text,
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}>
+          <FontAwesomeIcon icon={faUsers} />
+          <span>Последние посещения</span>
+        </h2>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          border: `1px solid ${COLORS.border}`,
+          padding: '24px',
+          textAlign: 'center',
+          color: '#666'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
+          <p style={{ fontSize: '16px', marginBottom: '8px' }}>История посещений будет доступна в ближайшем обновлении</p>
+          <p style={{ fontSize: '14px', color: '#999' }}>Следите за новостями!</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Компонент карточки статистики
+function StatCard({ title, value, icon, color, bgColor }: { title: string, value: number | string, icon: any, color: string, bgColor: string }) {
+  return (
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      padding: '24px',
+      border: `1px solid ${COLORS.border}`,
+      transition: 'all 0.3s',
+      cursor: 'pointer'
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'
+      e.currentTarget.style.transform = 'translateY(-4px)'
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.boxShadow = 'none'
+      e.currentTarget.style.transform = 'translateY(0)'
+    }}
+    >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+        <div>
+          <div style={{ fontSize: '13px', color: '#666', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+            {title}
+          </div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', color: COLORS.text, lineHeight: '1.2' }}>
+            {value}
           </div>
         </div>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          backgroundColor: bgColor,
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '20px',
+          color: color
+        }}>
+          <FontAwesomeIcon icon={icon} />
+        </div>
+      </div>
+    </div>
+  )
+}
 
-        {/* Описание */}
-        {venue.description && (
-          <div style={{ marginTop: '24px' }}>
-            <div style={{ 
-              fontSize: '12px', 
-              color: '#999', 
-              marginBottom: '12px',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontWeight: '600'
-            }}>
-              Описание
-            </div>
-            <div style={{ 
-              fontSize: '15px', 
-              color: '#666',
-              lineHeight: '1.6',
-              whiteSpace: 'pre-wrap'
-            }}>
-              {venue.description}
-            </div>
-          </div>
-        )}
+// Компонент элемента информации
+function InfoItem({ label, value, icon }: { label: string, value: string, icon: any }) {
+  return (
+    <div>
+      <div style={{ 
+        fontSize: '12px', 
+        color: '#999', 
+        marginBottom: '8px',
+        textTransform: 'uppercase',
+        letterSpacing: '1px',
+        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+      }}>
+        <FontAwesomeIcon icon={icon} size="xs" />
+        <span>{label}</span>
+      </div>
+      <div style={{ 
+        fontSize: '16px', 
+        fontWeight: '600',
+        color: COLORS.text,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        {value}
       </div>
     </div>
   )

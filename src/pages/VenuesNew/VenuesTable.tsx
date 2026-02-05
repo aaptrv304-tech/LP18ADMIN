@@ -5,6 +5,7 @@ import {
   faCalendar, 
   faEllipsisVertical
 } from '@fortawesome/free-solid-svg-icons'
+import { useNavigate } from 'react-router-dom'
 import { COLORS } from '../../pages/Landing'
 
 interface Venue {
@@ -19,6 +20,8 @@ interface Venue {
 }
 
 export default function VenuesTable({ venues }: { venues: Venue[] }) {
+  const navigate = useNavigate()
+
   const getStatusBadge = (isActive: boolean) => {
     if (isActive) {
       return (
@@ -64,6 +67,10 @@ export default function VenuesTable({ venues }: { venues: Venue[] }) {
         Неактивно
       </span>
     )
+  }
+
+  const handleRowClick = (venueId: number) => {
+    navigate(`/venues/${venueId}`)
   }
 
   return (
@@ -167,14 +174,14 @@ export default function VenuesTable({ venues }: { venues: Venue[] }) {
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 140, 66, 0.05)'
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 140, 66, 0.1)'
+                  e.currentTarget.style.transform = 'translateX(4px)'
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'white' : '#fafafa'
+                  e.currentTarget.style.transform = 'translateX(0)'
                 }}
-                onClick={() => {
-                  window.location.href = `/venues/${venue.id}`
-                }}
+                onClick={() => handleRowClick(venue.id)}
               >
                 <td style={{ padding: '20px 32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -238,18 +245,23 @@ export default function VenuesTable({ venues }: { venues: Venue[] }) {
                   {getStatusBadge(venue.is_active !== false)}
                 </td>
                 <td style={{ padding: '20px 24px', textAlign: 'right' }}>
-                  <button style={{
-                    padding: '8px',
-                    border: 'none',
-                    background: 'none',
-                    color: '#999',
-                    cursor: 'pointer',
-                    borderRadius: '6px',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  onClick={(e) => e.stopPropagation()}
+                  <button 
+                    style={{
+                      padding: '8px',
+                      border: 'none',
+                      background: 'none',
+                      color: '#999',
+                      cursor: 'pointer',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      // Здесь можно добавить меню действий
+                      alert('Меню действий будет добавлено позже')
+                    }}
                   >
                     <FontAwesomeIcon icon={faEllipsisVertical} size="lg" />
                   </button>

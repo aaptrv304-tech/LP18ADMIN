@@ -72,7 +72,7 @@ function App() {
           path="/venues"
           element={
             <ProtectedRoute>
-              <Layout>  {/* ← Убрал title */}
+              <Layout>
                 <VenuesNew />
               </Layout>
             </ProtectedRoute>
@@ -92,10 +92,7 @@ function App() {
           path="/venues/:id"
           element={
             <ProtectedRoute>
-              <Layout 
-                title="🏪 Детали заведения" 
-                breadcrumb={['Заведения', 'Детали']}
-              >
+              <Layout>  {/* ← Убрал title и breadcrumb */}
                 <VenueDetailPage />
               </Layout>
             </ProtectedRoute>
