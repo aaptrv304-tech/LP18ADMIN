@@ -2,13 +2,13 @@ import { useNavigate } from 'react-router-dom'
 
 // Цвета бренда "Апельсинчик"
 export const COLORS = {
-  primary: '#ff6b35',
-  primaryDark: '#e55a2b',
-  secondary: '#ffa500',
-  background: '#fffaf0',
-  text: '#333333',
-  lightGray: '#f5f5f5',
-  border: '#e0e0e0',
+  primary: '#FF8C42',        // Оранжевый (как в примере)
+  primaryDark: '#FF6B35',    // Тёмно-оранжевый
+  secondary: '#F8F9FA',      // Светло-серый фон
+  background: '#fffaf0',     // Кремовый фон
+  text: '#333333',           // Тёмный текст
+  lightGray: '#f5f5f5',      // Светло-серый
+  border: '#e0e0e0',         // Серая граница
   success: '#28a745',
   error: '#dc3545',
 }
@@ -52,11 +52,11 @@ export default function Landing() {
             backgroundColor: COLORS.primary,
             color: 'white', 
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '12px',
             cursor: 'pointer',
             fontSize: '18px',
             fontWeight: 'bold',
-            boxShadow: '0 4px 15px rgba(255, 107, 53, 0.3)',
+            boxShadow: '0 4px 15px rgba(255, 140, 66, 0.3)',
             transition: 'all 0.3s ease'
           }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryDark}

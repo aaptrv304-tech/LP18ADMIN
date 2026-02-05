@@ -6,7 +6,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Venues from './pages/Venues'
 import VenueDetailPage from './pages/VenueDetail'
-import Layout from './components/layout/Layout'
+import Layout from './components/ui/layout/Layout'
 
 // Защищённый роут
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -71,7 +71,7 @@ function App() {
           path="/venues"
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout title="🏪 Заведения">
                 <Venues />
               </Layout>
             </ProtectedRoute>
@@ -81,7 +81,10 @@ function App() {
           path="/venues/:id"
           element={
             <ProtectedRoute>
-              <Layout>
+              <Layout 
+                title="🏪 Детали заведения" 
+                breadcrumb={['Заведения', 'Детали']}
+              >
                 <VenueDetailPage />
               </Layout>
             </ProtectedRoute>
