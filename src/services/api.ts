@@ -30,6 +30,10 @@ export const adminApi = {
   updateVenue: (id: number, data: any) => api.put(`/admin/venues/${id}`, data),
   deleteVenue: (id: number) => api.delete(`/admin/venues/${id}`),
   
+  // Посещения
+  getVisitsByBusiness: (businessId: number, limit: number = 50) => 
+    api.get(`/admin/venues/${businessId}/visits?limit=${limit}`),
+  
   // Пользователи
   getUsers: () => api.get('/admin/users'),
   

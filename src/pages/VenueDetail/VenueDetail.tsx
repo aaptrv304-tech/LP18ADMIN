@@ -12,6 +12,7 @@ import {
   faArrowLeft,
   faChartLine
 } from '@fortawesome/free-solid-svg-icons'
+import VisitList from './VisitList'
 
 interface Venue {
   id: number
@@ -280,32 +281,9 @@ export default function VenueDetail() {
         </div>
       </div>
 
-      {/* Последние посещения (заглушка) */}
+      {/* Последние посещения */}
       <div>
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: COLORS.text,
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <FontAwesomeIcon icon={faUsers} />
-          <span>Последние посещения</span>
-        </h2>
-        <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          border: `1px solid ${COLORS.border}`,
-          padding: '24px',
-          textAlign: 'center',
-          color: '#666'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-          <p style={{ fontSize: '16px', marginBottom: '8px' }}>История посещений будет доступна в ближайшем обновлении</p>
-          <p style={{ fontSize: '14px', color: '#999' }}>Следите за новостями!</p>
-        </div>
+        <VisitList businessId={venue.id} />
       </div>
     </div>
   )
