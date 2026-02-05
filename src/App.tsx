@@ -5,6 +5,7 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Venues from './pages/Venues'
+import VenuesNew from './pages/VenuesNew'
 import VenueDetailPage from './pages/VenueDetail'
 import Layout from './components/ui/layout/Layout'
 
@@ -69,6 +70,16 @@ function App() {
         />
         <Route
           path="/venues"
+          element={
+            <ProtectedRoute>
+              <Layout>  {/* ← Убрал title */}
+                <VenuesNew />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/venues-old"
           element={
             <ProtectedRoute>
               <Layout title="🏪 Заведения">
