@@ -13,6 +13,7 @@ import {
   faChartLine
 } from '@fortawesome/free-solid-svg-icons'
 import VisitList from './VisitList'
+import VisitsChart from './VisitsChart'
 
 interface Venue {
   id: number
@@ -279,6 +280,11 @@ export default function VenueDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* График посещений */}
+      <div style={{ marginBottom: '32px' }}>
+        <VisitsChart businessId={venue.id} />
       </div>
 
       {/* Последние посещения */}
