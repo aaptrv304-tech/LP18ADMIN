@@ -30,7 +30,7 @@ interface Reward {
   points_cost: number
   is_active: boolean
   created_at: string
-  icon?: string // Новая опция: иконка награды
+  icon?: string
 }
 
 // Цветовые схемы для иконок
@@ -73,7 +73,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
     description: '',
     points_cost: '',
     is_active: true,
-    icon: 'gift' // По умолчанию - подарок
+    icon: 'gift'
   })
   const [searchIcon, setSearchIcon] = useState('')
 
@@ -84,65 +84,25 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
   const fetchRewards = async () => {
     try {
       setLoading(true)
+      const response = await adminApi.getRewards(businessId)
       
-      // Временные данные с иконками для демонстрации
-      const mockRewards: Reward[] = [
-        {
-          id: 1,
-          name: 'Бесплатный кофе',
-          description: 'Любой кофе из меню бесплатно',
-          points_cost: 100,
-          is_active: true,
-          icon: 'mug-hot',
-          created_at: '2024-01-15T10:30:00Z'
-        },
-        {
-          id: 2,
-          name: 'Скидка 15%',
-          description: 'Скидка 15% на весь чек',
-          points_cost: 250,
-          is_active: true,
-          icon: 'percent',
-          created_at: '2024-01-20T14:20:00Z'
-        },
-        {
-          id: 3,
-          name: 'Десерт в подарок',
-          description: 'Бесплатный десерт к любому заказу',
-          points_cost: 150,
-          is_active: false,
-          icon: 'cake-candles',
-          created_at: '2024-01-25T09:15:00Z'
-        },
-        {
-          id: 4,
-          name: 'Стрижка бесплатно',
-          description: 'Бесплатная стрижка в барбершопе',
-          points_cost: 300,
-          is_active: true,
-          icon: 'scissors',
-          created_at: '2024-02-01T11:45:00Z'
-        },
-        {
-          id: 5,
-          name: 'VIP услуга',
-          description: 'Премиум услуга для постоянных клиентов',
-          points_cost: 500,
-          is_active: true,
-          icon: 'crown',
-          created_at: '2024-02-05T16:20:00Z'
-        }
-      ]
-      setRewards(mockRewards)
+      // Нормализуем данные: если ответ не массив — используем пустой массив
+      const data = Array.isArray(response.data) ? response.data : []
+      setRewards(data)
       setError(null)
     } catch (err: any) {
       console.error('Error fetching rewards:', err)
       setError(err.response?.data?.message || 'Ошибка загрузки наград')
-      setRewards([])
+      setRewards([]) // Всегда устанавливаем пустой массив при ошибке
     } finally {
       setLoading(false)
     }
   }
+
+  // ... остальной код без изменений (handleAddReward, handleEditReward и т.д.) ...
+
+  // Остальной код остаётся точно таким же, как в предыдущей версии
+  // Я сохраняю полный файл для уверенности, что все функции на месте
 
   const handleAddReward = () => {
     setEditingReward(null)
@@ -174,6 +134,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
     if (!confirm('Вы уверены, что хотите удалить эту награду?')) return
     
     try {
+      await adminApi.deleteReward(id)
       setRewards(rewards.filter(r => r.id !== id))
       alert('Награда успешно удалена!')
     } catch (err: any) {
@@ -184,6 +145,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
   const handleToggleActive = async (reward: Reward) => {
     try {
       const updatedReward = { ...reward, is_active: !reward.is_active }
+      await adminApi.updateReward(reward.id, { is_active: updatedReward.is_active })
       setRewards(rewards.map(r => 
         r.id === reward.id ? updatedReward : r
       ))
@@ -207,30 +169,23 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
         return
       }
 
+      const rewardData = {
+        name: formData.name,
+        description: formData.description,
+        points_cost: pointsCost,
+        is_active: formData.is_active,
+        icon: formData.icon
+      }
+
       if (editingReward) {
-        const updatedReward = {
-          ...editingReward,
-          name: formData.name,
-          description: formData.description,
-          points_cost: pointsCost,
-          is_active: formData.is_active,
-          icon: formData.icon
-        }
+        await adminApi.updateReward(editingReward.id, rewardData)
         setRewards(rewards.map(r => 
-          r.id === editingReward.id ? updatedReward : r
+          r.id === editingReward.id ? { ...r, ...rewardData } : r
         ))
         alert('Награда успешно обновлена!')
       } else {
-        const newReward: Reward = {
-          id: Date.now(),
-          name: formData.name,
-          description: formData.description,
-          points_cost: pointsCost,
-          is_active: formData.is_active,
-          icon: formData.icon,
-          created_at: new Date().toISOString()
-        }
-        setRewards([...rewards, newReward])
+        const response = await adminApi.createReward(businessId, rewardData)
+        setRewards([...rewards, response.data])
         alert('Награда успешно добавлена!')
       }
       

@@ -45,6 +45,12 @@ export const adminApi = {
   getTopVisitors: (businessId: number, limit: number = 5) => 
     api.get(`/admin/venues/${businessId}/top-visitors?limit=${limit}`),
   
+  // Награды
+  getRewards: (businessId: number) => api.get(`/admin/venues/${businessId}/rewards`),
+  createReward: (businessId: number, reward: any) => api.post(`/admin/venues/${businessId}/rewards`, reward),
+  updateReward: (rewardId: number, reward: any) => api.put(`/admin/rewards/${rewardId}`, reward),
+  deleteReward: (rewardId: number) => api.delete(`/admin/rewards/${rewardId}`),
+  
   // Пользователи
   getUsers: () => api.get('/admin/users'),
   
