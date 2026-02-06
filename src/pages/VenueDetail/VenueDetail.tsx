@@ -1109,35 +1109,3 @@ function StatCard({ title, value, icon, color, bgColor }: { title: string, value
     </div>
   )
 }
-
-// Компонент элемента информации
-function InfoItem({ label, value, icon }: { label: string, value: string, icon: any }) {
-  return (
-    <div>
-      <div style={{
-        fontSize: '12px',
-        color: '#999',
-        marginBottom: '8px',
-        textTransform: 'uppercase',
-        letterSpacing: '1px',
-        fontWeight: '600',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px'
-      }}>
-        <FontAwesomeIcon icon={icon} size="xs" />
-        <span>{label}</span>
-      </div>
-      <div style={{
-        fontSize: '16px',
-        fontWeight: '600',
-        color: COLORS.text,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px'
-      }}>
-        {value}
-      </div>
-    </div>
-  )
-}
