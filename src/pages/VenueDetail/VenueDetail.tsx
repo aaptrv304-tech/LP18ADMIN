@@ -14,6 +14,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import VisitList from './VisitList'
 import VisitsChart from './VisitsChart'
+import TopVisitors from './TopVisitors'
 
 interface Venue {
   id: number
@@ -282,10 +283,19 @@ export default function VenueDetail() {
         </div>
       </div>
 
+      {/* Топ-5 посетителей */}
+      {venue.visits_count && venue.visits_count > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <TopVisitors businessId={venue.id} />
+        </div>
+      )}
+
       {/* График посещений */}
-      <div style={{ marginBottom: '32px' }}>
-        <VisitsChart businessId={venue.id} />
-      </div>
+      {venue.visits_count && venue.visits_count > 0 && (
+        <div style={{ marginBottom: '32px' }}>
+          <VisitsChart businessId={venue.id} totalVisits={venue.visits_count} />
+        </div>
+      )}
 
       {/* Последние посещения */}
       <div>
