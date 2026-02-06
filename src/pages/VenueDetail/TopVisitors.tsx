@@ -78,7 +78,18 @@ export default function TopVisitors({ businessId }: { businessId: number }) {
         padding: '40px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>👑</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          backgroundColor: '#FFD70020',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px'
+        }}>
+          <FontAwesomeIcon icon={faCrown} style={{ fontSize: '48px', color: '#FFD700' }} />
+        </div>
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: COLORS.text, marginBottom: '8px' }}>
           Нет данных для топа
         </h3>
@@ -191,12 +202,12 @@ function VisitorCard({ visitor, rank }: { visitor: Visitor, rank: number }) {
       border: rank <= 3 ? `1px solid ${['#FFD700', '#C0C0C0', '#CD7F32'][rank - 1]}30` : `1px solid ${COLORS.border}`,
       transition: 'all 0.2s'
     }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.backgroundColor = rank <= 3 ? 'rgba(255, 215, 0, 0.1)' : '#f9fafb'
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.backgroundColor = rank <= 3 ? 'rgba(255, 215, 0, 0.05)' : 'transparent'
-    }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = rank <= 3 ? 'rgba(255, 215, 0, 0.1)' : '#f9fafb'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = rank <= 3 ? 'rgba(255, 215, 0, 0.05)' : 'transparent'
+      }}
     >
       {getRankBadge(rank)}
 

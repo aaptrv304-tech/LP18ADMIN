@@ -129,7 +129,6 @@ export default function VisitList({ businessId }: { businessId: number }) {
     )
   }
 
-  // ЧИСТАЯ ЗАГЛУШКА БЕЗ ЧИСЕЛ И ЗАГОЛОВКА
   if (!visits || visits.length === 0) {
     return (
       <div style={{
@@ -139,7 +138,18 @@ export default function VisitList({ businessId }: { businessId: number }) {
         padding: '40px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📭</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px'
+        }}>
+          <FontAwesomeIcon icon={faCalendar} style={{ fontSize: '48px', color: '#999' }} />
+        </div>
         <p style={{
           fontSize: '16px',
           fontWeight: '600',

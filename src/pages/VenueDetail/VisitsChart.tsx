@@ -60,9 +60,9 @@ export default function VisitsChart({ businessId, totalVisits }: VisitsChartProp
     try {
       setLoading(true)
       const response = await adminApi.getVisitsChartData(businessId, 14)
-      
+
       const apiData: { date: string; visits: number }[] = response.data.data || []
-      
+
       // Форматируем даты для отображения
       const formattedData = apiData.map(item => ({
         date: new Date(item.date).toLocaleDateString('ru-RU', {
@@ -71,13 +71,13 @@ export default function VisitsChart({ businessId, totalVisits }: VisitsChartProp
         }),
         visits: item.visits
       }))
-      
+
       setChartData(formattedData)
       setError(null)
     } catch (err: any) {
       console.error('Error fetching chart data:', err)
       setError(err.response?.data?.message || 'Ошибка загрузки данных для графика')
-      
+
       // В случае ошибки показываем пустой график
       setChartData([])
     } finally {
@@ -95,7 +95,18 @@ export default function VisitsChart({ businessId, totalVisits }: VisitsChartProp
         padding: '40px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📉</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          backgroundColor: COLORS.primary + '15',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px'
+        }}>
+          <FontAwesomeIcon icon={faChartLine} style={{ fontSize: '48px', color: COLORS.primary }} />
+        </div>
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: COLORS.text, marginBottom: '8px' }}>
           Нет данных для графика
         </h3>
@@ -146,7 +157,18 @@ export default function VisitsChart({ businessId, totalVisits }: VisitsChartProp
         padding: '40px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📉</div>
+        <div style={{
+          width: '80px',
+          height: '80px',
+          backgroundColor: COLORS.primary + '15',
+          borderRadius: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px'
+        }}>
+          <FontAwesomeIcon icon={faChartLine} style={{ fontSize: '48px', color: COLORS.primary }} />
+        </div>
         <h3 style={{ fontSize: '18px', fontWeight: '600', color: COLORS.text, marginBottom: '8px' }}>
           Нет данных за период
         </h3>
@@ -276,7 +298,7 @@ export default function VisitsChart({ businessId, totalVisits }: VisitsChartProp
             График посещений за 2 недели
           </h2>
         </div>
-        
+
         {/* Статистика */}
         <div style={{
           display: 'grid',
