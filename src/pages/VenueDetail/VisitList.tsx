@@ -39,12 +39,13 @@ export default function VisitList({ businessId }: { businessId: number }) {
     try {
       setLoading(true)
       const response = await adminApi.getVisitsByBusiness(businessId, currentPage, limit)
-      
-      const data: VisitResponse = response.data
-      
-      setVisits(Array.isArray(data.visits) ? data.visits : [])
-      setTotalCount(data.total_count || 0)
-      setTotalPages(data.total_pages || 0)
+
+      // ПРАВИЛЬНАЯ ДЕСТРУКТУРИЗАЦИЯ
+      const apiData: VisitResponse = response.data
+
+      setVisits(Array.isArray(apiData.visits) ? apiData.visits : [])
+      setTotalCount(apiData.total_count || 0)
+      setTotalPages(apiData.total_pages || 0)
       setError(null)
     } catch (err: any) {
       console.error('Error fetching visits:', err)
@@ -101,12 +102,14 @@ export default function VisitList({ businessId }: { businessId: number }) {
   if (loading) {
     return (
       <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        border: `1px solid ${COLORS.border}`,
         padding: '40px',
-        textAlign: 'center',
-        color: '#999'
+        textAlign: 'center'
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
-        <p>Загрузка посещений...</p>
+        <p style={{ color: '#999', fontSize: '14px' }}>Загрузка посещений...</p>
       </div>
     )
   }
@@ -116,8 +119,8 @@ export default function VisitList({ businessId }: { businessId: number }) {
       <div style={{
         backgroundColor: '#fff3cd',
         border: '1px solid #ffc107',
-        borderRadius: '8px',
-        padding: '16px',
+        borderRadius: '16px',
+        padding: '24px',
         color: '#856404',
         fontSize: '14px'
       }}>
@@ -126,23 +129,39 @@ export default function VisitList({ businessId }: { businessId: number }) {
     )
   }
 
+  // ЧИСТАЯ ЗАГЛУШКА БЕЗ ЧИСЕЛ И ЗАГОЛОВКА
   if (!visits || visits.length === 0) {
     return (
       <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        border: `1px solid ${COLORS.border}`,
         padding: '40px',
-        textAlign: 'center',
-        color: '#999'
+        textAlign: 'center'
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📭</div>
-        <p style={{ fontSize: '16px', marginBottom: '8px' }}>Нет посещений</p>
-        <p style={{ fontSize: '14px' }}>Посещения появятся после того, как клиенты начнут пользоваться системой</p>
+        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📭</div>
+        <p style={{
+          fontSize: '16px',
+          fontWeight: '600',
+          color: COLORS.text,
+          marginBottom: '8px'
+        }}>
+          Нет посещений
+        </p>
+        <p style={{
+          color: '#999',
+          fontSize: '14px',
+          lineHeight: '1.5'
+        }}>
+          Посещения появятся после того, как клиенты начнут пользоваться системой
+        </p>
       </div>
     )
   }
 
+  // ЕСЛИ ЕСТЬ ПОСЕЩЕНИЯ - ОТОБРАЖАЕМ ЗАГОЛОВОК И СПИСОК
   return (
     <div>
-      {/* Заголовок с информацией о пагинации */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -182,18 +201,12 @@ export default function VisitList({ businessId }: { businessId: number }) {
         </button>
       </div>
 
-      {/* Список посещений */}
-      <div style={{
-        display: 'grid',
-        gap: '12px',
-        marginBottom: '24px'
-      }}>
+      <div style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>
         {visits.map((visit) => (
           <VisitCard key={visit.id} visit={visit} />
         ))}
       </div>
 
-      {/* Пагинация */}
       {totalPages > 1 && (
         <div style={{
           display: 'flex',
@@ -205,7 +218,6 @@ export default function VisitList({ businessId }: { businessId: number }) {
           borderRadius: '12px',
           border: `1px solid ${COLORS.border}`
         }}>
-          {/* Кнопка "Назад" */}
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
@@ -219,31 +231,15 @@ export default function VisitList({ businessId }: { businessId: number }) {
               fontSize: '14px',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => {
-              if (currentPage !== 1) {
-                e.currentTarget.style.backgroundColor = '#e0e0e0'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentPage !== 1) {
-                e.currentTarget.style.backgroundColor = '#f5f5f5'
-              }
-            }}
+            onMouseEnter={(e) => currentPage !== 1 && (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+            onMouseLeave={(e) => currentPage !== 1 && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
           >
             <FontAwesomeIcon icon={faChevronLeft} />
           </button>
 
-          {/* Номера страниц */}
           {getPageNumbers().map((page, index) => (
             page === '...' ? (
-              <span 
-                key={`ellipsis-${index}`} 
-                style={{ 
-                  padding: '8px 12px', 
-                  color: '#999',
-                  fontSize: '14px'
-                }}
-              >
+              <span key={`ellipsis-${index}`} style={{ padding: '8px 12px', color: '#999', fontSize: '14px' }}>
                 ...
               </span>
             ) : (
@@ -262,23 +258,14 @@ export default function VisitList({ businessId }: { businessId: number }) {
                   minWidth: '32px',
                   transition: 'all 0.2s'
                 }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== page) {
-                    e.currentTarget.style.backgroundColor = '#e0e0e0'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== page) {
-                    e.currentTarget.style.backgroundColor = '#f5f5f5'
-                  }
-                }}
+                onMouseEnter={(e) => currentPage !== page && (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+                onMouseLeave={(e) => currentPage !== page && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
               >
                 {page}
               </button>
             )
           ))}
 
-          {/* Кнопка "Вперед" */}
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
@@ -292,16 +279,8 @@ export default function VisitList({ businessId }: { businessId: number }) {
               fontSize: '14px',
               transition: 'all 0.2s'
             }}
-            onMouseEnter={(e) => {
-              if (currentPage !== totalPages) {
-                e.currentTarget.style.backgroundColor = '#e0e0e0'
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentPage !== totalPages) {
-                e.currentTarget.style.backgroundColor = '#f5f5f5'
-              }
-            }}
+            onMouseEnter={(e) => currentPage !== totalPages && (e.currentTarget.style.backgroundColor = '#e0e0e0')}
+            onMouseLeave={(e) => currentPage !== totalPages && (e.currentTarget.style.backgroundColor = '#f5f5f5')}
           >
             <FontAwesomeIcon icon={faChevronRight} />
           </button>
@@ -321,14 +300,14 @@ function VisitCard({ visit }: { visit: Visit }) {
       transition: 'all 0.2s',
       cursor: 'pointer'
     }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'
-      e.currentTarget.style.transform = 'translateX(4px)'
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.boxShadow = 'none'
-      e.currentTarget.style.transform = 'translateX(0)'
-    }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'
+        e.currentTarget.style.transform = 'translateX(4px)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = 'none'
+        e.currentTarget.style.transform = 'translateX(0)'
+      }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

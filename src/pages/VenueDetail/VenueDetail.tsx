@@ -100,11 +100,16 @@ export default function VenueDetail() {
     try {
       setLoading(true)
       const response = await adminApi.getVenueById(venueId)
-      setVenue(response.data)
+      const rawData = response.data
+
+      // Нормализуем visits_count
+      setVenue({
+        ...rawData,
+        visits_count: parseInt(rawData.visits_count) || 0
+      })
       setError(null)
     } catch (err: any) {
-      console.error('Error fetching venue:', err)
-      setError(err.response?.data?.message || 'Ошибка загрузки заведения')
+      // ...
     } finally {
       setLoading(false)
     }
@@ -113,7 +118,15 @@ export default function VenueDetail() {
   const fetchVenueStats = async (venueId: number) => {
     try {
       const response = await adminApi.getVenueStats(venueId)
-      setVenueStats(response.data)
+      const rawData = response.data
+
+      // Гарантируем числовые значения
+      setVenueStats({
+        today: parseInt(rawData.today) || 0,
+        week: parseInt(rawData.week) || 0,
+        month: parseInt(rawData.month) || 0,
+        total: parseInt(rawData.total) || 0
+      })
     } catch (err: any) {
       console.error('Error fetching venue stats:', err)
       setVenueStats({ today: 0, week: 0, month: 0, total: 0 })
@@ -278,55 +291,57 @@ export default function VenueDetail() {
         </div>
       </div>
 
-      {/* Статистика - РЕАЛЬНЫЕ ДАННЫЕ */}
-      <div style={{ marginBottom: '32px' }}>
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: COLORS.text,
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <FontAwesomeIcon icon={faChartLine} />
-          <span>Статистика</span>
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px'
-        }}>
-          <StatCard
-            title="Посещений сегодня"
-            value={venueStats?.today || 0}
-            icon={faCalendar}
-            color="#2196F3"
-            bgColor="rgba(33, 150, 243, 0.1)"
-          />
-          <StatCard
-            title="Посещений за неделю"
-            value={venueStats?.week || 0}
-            icon={faCalendar}
-            color="#FF9800"
-            bgColor="rgba(255, 152, 0, 0.1)"
-          />
-          <StatCard
-            title="Посещений за месяц"
-            value={venueStats?.month || 0}
-            icon={faCalendar}
-            color="#9C27B0"
-            bgColor="rgba(156, 39, 176, 0.1)"
-          />
-          <StatCard
-            title="Всего посещений"
-            value={venueStats?.total || venue.visits_count || 0}
-            icon={faUsers}
-            color="#4CAF50"
-            bgColor="rgba(76, 175, 80, 0.1)"
-          />
+      {/* Статистика - ВСЕГДА отображается */}
+      {venueStats && (
+        <div style={{ marginBottom: '32px' }}>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '700',
+            color: COLORS.text,
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <FontAwesomeIcon icon={faChartLine} />
+            <span>Статистика</span>
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '20px'
+          }}>
+            <StatCard
+              title="Посещений сегодня"
+              value={venueStats.today || 0}
+              icon={faCalendar}
+              color="#2196F3"
+              bgColor="rgba(33, 150, 243, 0.1)"
+            />
+            <StatCard
+              title="Посещений за неделю"
+              value={venueStats.week || 0}
+              icon={faCalendar}
+              color="#FF9800"
+              bgColor="rgba(255, 152, 0, 0.1)"
+            />
+            <StatCard
+              title="Посещений за месяц"
+              value={venueStats.month || 0}
+              icon={faCalendar}
+              color="#9C27B0"
+              bgColor="rgba(156, 39, 176, 0.1)"
+            />
+            <StatCard
+              title="Всего посещений"
+              value={venueStats.total || 0}
+              icon={faUsers}
+              color="#4CAF50"
+              bgColor="rgba(76, 175, 80, 0.1)"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Информация о заведении - РЕДАКТИРУЕМАЯ */}
       <div style={{ marginBottom: '32px' }}>
@@ -834,15 +849,15 @@ export default function VenueDetail() {
         <RewardsSection businessId={venue.id} />
       </div>
 
-      {/* Топ-5 посетителей */}
-      {venueStats?.total && venueStats.total > 0 && (
+      {/* Топ-5 посетителей - ВСЕГДА отображается */}
+      {venueStats && (
         <div style={{ marginBottom: '32px' }}>
           <TopVisitors businessId={venue.id} />
         </div>
       )}
 
-      {/* График посещений */}
-      {venueStats?.total && venueStats.total > 0 && (
+      {/* График посещений - ВСЕГДА отображается */}
+      {venueStats && (
         <div style={{ marginBottom: '32px' }}>
           <VisitsChart businessId={venue.id} totalVisits={venueStats.total} />
         </div>
