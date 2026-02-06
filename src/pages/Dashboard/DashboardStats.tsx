@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import { adminApi } from '../../services/api'
 import { COLORS } from '../Landing'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { 
+  faStore, 
+  faUsers, 
+  faCalendar, 
+  faCalendarWeek, 
+  faCalendarAlt 
+} from '@fortawesome/free-solid-svg-icons'
 
 interface Stats {
   total_users: number
@@ -94,47 +102,37 @@ export default function DashboardStats() {
     {
       title: 'Всего заведений',
       value: stats.total_venues,
-      icon: '🏪',
-      color: '#FF8C42',
-      bgColor: 'rgba(255, 140, 66, 0.1)',
-      change: '+12%',
-      changeColor: '#28a745'
+      icon: faStore,
+      color: '#3B82F6',
+      bgColor: 'rgba(59, 130, 246, 0.1)'
     },
     {
       title: 'Всего посещений',
       value: stats.total_visits,
-      icon: '👥',
+      icon: faUsers,
       color: '#4CAF50',
-      bgColor: 'rgba(76, 175, 80, 0.1)',
-      change: '+8%',
-      changeColor: '#28a745'
+      bgColor: 'rgba(76, 175, 80, 0.1)'
     },
     {
       title: 'Посещений сегодня',
       value: stats.visits_today,
-      icon: '📅',
+      icon: faCalendar,
       color: '#2196F3',
-      bgColor: 'rgba(33, 150, 243, 0.1)',
-      change: '+5%',
-      changeColor: '#28a745'
+      bgColor: 'rgba(33, 150, 243, 0.1)'
     },
     {
       title: 'Посещений за неделю',
       value: stats.visits_this_week,
-      icon: '📆',
+      icon: faCalendarWeek,
       color: '#FF9800',
-      bgColor: 'rgba(255, 152, 0, 0.1)',
-      change: '+15%',
-      changeColor: '#28a745'
+      bgColor: 'rgba(255, 152, 0, 0.1)'
     },
     {
       title: 'Посещений за месяц',
       value: stats.visits_this_month,
-      icon: '🗓️',
+      icon: faCalendarAlt,
       color: '#9C27B0',
-      bgColor: 'rgba(156, 39, 176, 0.1)',
-      change: '+22%',
-      changeColor: '#28a745'
+      bgColor: 'rgba(156, 39, 176, 0.1)'
     },
   ]
 
@@ -144,8 +142,7 @@ export default function DashboardStats() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '24px',
-        marginBottom: '24px'
+        gap: '24px'
       }}>
         {statCards.map((card) => (
           <div key={card.title} style={{
@@ -167,7 +164,7 @@ export default function DashboardStats() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
               <div>
-                <div style={{ fontSize: '13px', color: '#999', fontWeight: '500', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: '#666', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>
                   {card.title}
                 </div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', color: COLORS.text, lineHeight: '1.2' }}>
@@ -185,29 +182,18 @@ export default function DashboardStats() {
                 fontSize: '28px',
                 color: card.color
               }}>
-                {card.icon}
+                <FontAwesomeIcon icon={card.icon} />
               </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                backgroundColor: card.changeColor
-              }} />
-              <span style={{ fontSize: '13px', color: '#666' }}>
-                <span style={{ color: card.changeColor, fontWeight: '600' }}>{card.change}</span> за период
-              </span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Кнопка обновления под карточками */}
+      {/* Кнопка обновления */}
       <div style={{ 
         display: 'flex', 
-        justifyContent: 'flex-start' 
+        justifyContent: 'flex-start',
+        marginTop: '24px'
       }}>
         <button
           onClick={fetchStats}
