@@ -10,7 +10,10 @@ import {
   faCalendar, 
   faUsers, 
   faArrowLeft,
-  faChartLine
+  faChartLine,
+  faPen,
+  faSave,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons'
 import VisitList from './VisitList'
 import VisitsChart from './VisitsChart'
@@ -42,6 +45,14 @@ export default function VenueDetail() {
   const [venueStats, setVenueStats] = useState<VenueStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedData, setEditedData] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    description: ''
+  })
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (id) {
@@ -49,6 +60,17 @@ export default function VenueDetail() {
       fetchVenueStats(Number(id))
     }
   }, [id])
+
+  useEffect(() => {
+    if (venue) {
+      setEditedData({
+        name: venue.name,
+        address: venue.address || '',
+        phone: venue.phone || '',
+        description: venue.description || ''
+      })
+    }
+  }, [venue])
 
   const fetchVenue = async (venueId: number) => {
     try {
@@ -70,13 +92,63 @@ export default function VenueDetail() {
       setVenueStats(response.data)
     } catch (err: any) {
       console.error('Error fetching venue stats:', err)
-      // Не показываем ошибку, просто оставляем 0
       setVenueStats({ today: 0, week: 0, month: 0, total: 0 })
     }
   }
 
-  const handleBack = () => {
-    navigate('/venues')
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancel = () => {
+    if (venue) {
+      setEditedData({
+        name: venue.name,
+        address: venue.address || '',
+        phone: venue.phone || '',
+        description: venue.description || ''
+      })
+    }
+    setIsEditing(false)
+  }
+
+  const handleSave = async () => {
+    if (!venue) return
+    
+    try {
+      setSaving(true)
+      
+      // Формируем данные для обновления (только измененные поля)
+      const updateData: any = {}
+      if (editedData.name !== venue.name) updateData.name = editedData.name
+      if (editedData.address !== (venue.address || '')) updateData.address = editedData.address
+      if (editedData.phone !== (venue.phone || '')) updateData.phone = editedData.phone
+      if (editedData.description !== (venue.description || '')) updateData.description = editedData.description
+
+      if (Object.keys(updateData).length === 0) {
+        setIsEditing(false)
+        return
+      }
+
+      await adminApi.updateVenue(venue.id, updateData)
+      
+      // Обновляем данные заведения
+      setVenue(prev => prev ? {...prev, ...updateData} : null)
+      
+      setIsEditing(false)
+      
+      // Показываем уведомление об успехе
+      alert('Данные заведения успешно обновлены!')
+    } catch (err: any) {
+      console.error('Error updating venue:', err)
+      alert(err.response?.data?.message || 'Ошибка при сохранении данных')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleInputChange = (field: string, value: string) => {
+    setEditedData(prev => ({ ...prev, [field]: value }))
   }
 
   if (loading) {
@@ -228,71 +300,370 @@ export default function VenueDetail() {
         </div>
       </div>
 
-      {/* Информация о заведении */}
+      {/* Информация о заведении - РЕДАКТИРУЕМАЯ */}
       <div style={{ marginBottom: '32px' }}>
-        <h2 style={{
-          fontSize: '20px',
-          fontWeight: '700',
-          color: COLORS.text,
-          marginBottom: '20px',
-          display: 'flex',
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
           alignItems: 'center',
-          gap: '8px'
+          marginBottom: '20px'
         }}>
-          <FontAwesomeIcon icon={faStore} />
-          <span>Информация о заведении</span>
-        </h2>
+          <h2 style={{
+            fontSize: '20px',
+            fontWeight: '700',
+            color: COLORS.text,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <FontAwesomeIcon icon={faStore} />
+            <span>Информация о заведении</span>
+          </h2>
+          {!isEditing ? (
+            <button
+              onClick={handleEdit}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: COLORS.primary + '15',
+                color: COLORS.primary,
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primary + '25'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary + '15'}
+            >
+              <FontAwesomeIcon icon={faPen} />
+              <span>Редактировать</span>
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: saving ? '#ccc' : COLORS.primary,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => !saving && (e.currentTarget.style.backgroundColor = COLORS.primaryDark)}
+                onMouseLeave={(e) => !saving && (e.currentTarget.style.backgroundColor = COLORS.primary)}
+              >
+                <FontAwesomeIcon icon={faSave} />
+                <span>{saving ? 'Сохранение...' : 'Сохранить'}</span>
+              </button>
+              <button
+                onClick={handleCancel}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#f5f5f5',
+                  color: '#666',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+              >
+                <FontAwesomeIcon icon={faTimes} />
+                <span>Отмена</span>
+              </button>
+            </div>
+          )}
+        </div>
+        
         <div style={{
           backgroundColor: 'white',
           borderRadius: '16px',
           border: `1px solid ${COLORS.border}`,
           padding: '24px'
         }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px' }}>
-            <InfoItem 
-              label="ID заведения" 
-              value={`#${venue.id}`} 
-              icon={faCalendar}
-            />
-            <InfoItem 
-              label="Категория" 
-              value={venue.category || 'Не указана'} 
-              icon={faStore}
-            />
-            <InfoItem 
-              label="Дата создания" 
-              value={new Date(venue.created_at).toLocaleDateString('ru-RU', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })} 
-              icon={faCalendar}
-            />
-          </div>
-
-          {/* Описание */}
-          {venue.description && (
-            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: `1px solid ${COLORS.border}` }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+            {/* Название */}
+            <div>
               <div style={{ 
-                fontSize: '13px', 
+                fontSize: '12px', 
                 color: '#999', 
-                marginBottom: '12px',
+                marginBottom: '8px',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                fontWeight: '600'
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
               }}>
-                Описание
+                <FontAwesomeIcon icon={faStore} size="xs" />
+                <span>Название заведения</span>
               </div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    color: COLORS.text,
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.border}
+                />
+              ) : (
+                <div style={{ 
+                  fontSize: '16px', 
+                  fontWeight: '600',
+                  color: COLORS.text,
+                  padding: '12px 0'
+                }}>
+                  {venue.name}
+                </div>
+              )}
+            </div>
+
+            {/* Адрес */}
+            <div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999', 
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <FontAwesomeIcon icon={faMapMarkerAlt} size="xs" />
+                <span>Адрес</span>
+              </div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="Введите адрес"
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    color: COLORS.text,
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.border}
+                />
+              ) : (
+                <div style={{ 
+                  fontSize: '16px', 
+                  color: '#666',
+                  padding: '12px 0'
+                }}>
+                  {venue.address || 'Адрес не указан'}
+                </div>
+              )}
+            </div>
+
+            {/* Телефон */}
+            <div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999', 
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <FontAwesomeIcon icon={faPhone} size="xs" />
+                <span>Телефон</span>
+              </div>
+              {isEditing ? (
+                <input
+                  type="tel"
+                  value={editedData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  placeholder="+7 (999) 123-45-67"
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: `1px solid ${COLORS.border}`,
+                    borderRadius: '12px',
+                    fontSize: '16px',
+                    color: COLORS.text,
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = COLORS.primary}
+                  onBlur={(e) => e.currentTarget.style.borderColor = COLORS.border}
+                />
+              ) : (
+                <div style={{ 
+                  fontSize: '16px', 
+                  color: '#666',
+                  padding: '12px 0'
+                }}>
+                  {venue.phone || 'Телефон не указан'}
+                </div>
+              )}
+            </div>
+
+            {/* Категория */}
+            <div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999', 
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <FontAwesomeIcon icon={faStore} size="xs" />
+                <span>Категория</span>
+              </div>
+              <div style={{ 
+                fontSize: '16px', 
+                color: '#666',
+                padding: '12px 0'
+              }}>
+                {venue.category || 'Не указана'}
+              </div>
+            </div>
+
+            {/* Дата создания */}
+            <div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999', 
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <FontAwesomeIcon icon={faCalendar} size="xs" />
+                <span>Дата создания</span>
+              </div>
+              <div style={{ 
+                fontSize: '16px', 
+                color: '#666',
+                padding: '12px 0'
+              }}>
+                {new Date(venue.created_at).toLocaleDateString('ru-RU', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </div>
+            </div>
+
+            {/* ID заведения */}
+            <div>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#999', 
+                marginBottom: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <FontAwesomeIcon icon={faCalendar} size="xs" />
+                <span>ID заведения</span>
+              </div>
+              <div style={{ 
+                fontSize: '16px', 
+                fontWeight: '600',
+                color: COLORS.text,
+                padding: '12px 0'
+              }}>
+                #{venue.id}
+              </div>
+            </div>
+          </div>
+
+          {/* Описание - редактируемое */}
+          <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: `1px solid ${COLORS.border}` }}>
+            <div style={{ 
+              fontSize: '13px', 
+              color: '#999', 
+              marginBottom: '12px',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <FontAwesomeIcon icon={faPen} size="xs" />
+              <span>Описание</span>
+            </div>
+            {isEditing ? (
+              <textarea
+                value={editedData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Введите описание заведения..."
+                rows={4}
+                style={{
+                  width: '100%',
+                  padding: '16px',
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  color: COLORS.text,
+                  lineHeight: '1.6',
+                  resize: 'vertical',
+                  transition: 'border-color 0.2s'
+                }}
+                onFocus={(e) => e.currentTarget.style.borderColor = COLORS.primary}
+                onBlur={(e) => e.currentTarget.style.borderColor = COLORS.border}
+              />
+            ) : (
               <div style={{ 
                 fontSize: '15px', 
                 color: '#666',
                 lineHeight: '1.6',
-                whiteSpace: 'pre-wrap'
+                whiteSpace: 'pre-wrap',
+                minHeight: '60px'
               }}>
-                {venue.description}
+                {venue.description || 'Описание не добавлено'}
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -395,4 +766,8 @@ function InfoItem({ label, value, icon }: { label: string, value: string, icon: 
       </div>
     </div>
   )
+}
+
+function handleBack() {
+  window.history.back()
 }

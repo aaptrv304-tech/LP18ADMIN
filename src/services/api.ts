@@ -26,7 +26,7 @@ export const adminApi = {
   // Заведения
   getVenues: () => api.get('/admin/venues'),
   getVenueById: (id: number) => api.get(`/admin/venues/${id}`),
-  createVenue: ( any) => api.post('/admin/venues', data),
+  createVenue: (data: any) => api.post('/admin/venues', data),
   updateVenue: (id: number, data: any) => api.put(`/admin/venues/${id}`, data),
   deleteVenue: (id: number) => api.delete(`/admin/venues/${id}`),
   
