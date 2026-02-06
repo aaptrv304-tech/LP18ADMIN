@@ -34,6 +34,10 @@ export const adminApi = {
   getVisitsByBusiness: (businessId: number, page: number = 1, limit: number = 20) => 
     api.get(`/admin/venues/${businessId}/visits?page=${page}&limit=${limit}`),
   
+  // Данные для графика посещений
+  getVisitsChartData: (businessId: number, days: number = 14) => 
+    api.get(`/admin/venues/${businessId}/visits-chart?days=${days}`),
+  
   // Пользователи
   getUsers: () => api.get('/admin/users'),
   

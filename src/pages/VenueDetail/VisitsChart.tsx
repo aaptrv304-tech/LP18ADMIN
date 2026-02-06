@@ -11,7 +11,8 @@ import {
   Legend,
   Filler,
 } from 'chart.js'
-import { Bar, Line } from 'react-chartjs-2'
+import { Line } from 'react-chartjs-2'
+import { adminApi } from '../../services/api'
 import { COLORS } from '../../pages/Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartLine } from '@fortawesome/free-solid-svg-icons'
@@ -33,52 +34,76 @@ interface ChartDataPoint {
   visits: number
 }
 
-export default function VisitsChart({ businessId }: { businessId: number }) {
+interface ChartResponse {
+  data: { date: string; visits: number }[]
+}
+
+interface VisitsChartProps {
+  businessId: number
+  totalVisits: number
+}
+
+export default function VisitsChart({ businessId, totalVisits }: VisitsChartProps) {
   const [loading, setLoading] = useState(true)
   const [chartData, setChartData] = useState<ChartDataPoint[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Пока генерируем фейковые данные за 2 недели
-    // В будущем можно будет получать с бэкенда
-    generateFakeData()
-  }, [businessId])
+    if (totalVisits === 0) {
+      setLoading(false)
+      return
+    }
+    fetchChartData()
+  }, [businessId, totalVisits])
 
-  const generateFakeData = () => {
+  const fetchChartData = async () => {
     try {
       setLoading(true)
-
-      const data: ChartDataPoint[] = []
-      const today = new Date()
-
-      // Генерируем данные за последние 14 дней
-      for (let i = 13; i >= 0; i--) {
-        const date = new Date()
-        date.setDate(today.getDate() - i)
-
-        // Генерируем случайное количество посещений (от 5 до 50)
-        // Добавляем немного "волны" для реалистичности
-        const baseVisits = 15 + Math.sin(i / 3) * 10
-        const randomFactor = Math.random() * 15
-        const visits = Math.max(5, Math.floor(baseVisits + randomFactor))
-
-        data.push({
-          date: date.toLocaleDateString('ru-RU', {
-            day: '2-digit',
-            month: 'short'
-          }),
-          visits: visits
-        })
-      }
-
-      setChartData(data)
+      const response = await adminApi.getVisitsChartData(businessId, 14)
+      
+      const apiData: { date: string; visits: number }[] = response.data.data || []
+      
+      // Форматируем даты для отображения
+      const formattedData = apiData.map(item => ({
+        date: new Date(item.date).toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: 'short'
+        }),
+        visits: item.visits
+      }))
+      
+      setChartData(formattedData)
       setError(null)
     } catch (err: any) {
-      console.error('Error generating chart data:', err)
-      setError('Ошибка загрузки данных для графика')
+      console.error('Error fetching chart data:', err)
+      setError(err.response?.data?.message || 'Ошибка загрузки данных для графика')
+      
+      // В случае ошибки показываем пустой график
+      setChartData([])
     } finally {
       setLoading(false)
     }
+  }
+
+  // Если нет посещений - показываем заглушку
+  if (totalVisits === 0) {
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        border: `1px solid ${COLORS.border}`,
+        padding: '40px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📉</div>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: COLORS.text, marginBottom: '8px' }}>
+          Нет данных для графика
+        </h3>
+        <p style={{ color: '#999', fontSize: '14px', lineHeight: '1.5' }}>
+          График посещений появится после первых визитов клиентов
+        </p>
+      </div>
+    )
   }
 
   if (loading) {
@@ -87,7 +112,7 @@ export default function VisitsChart({ businessId }: { businessId: number }) {
         backgroundColor: 'white',
         borderRadius: '16px',
         border: `1px solid ${COLORS.border}`,
-        padding: '32px',
+        padding: '40px',
         textAlign: 'center'
       }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
@@ -107,6 +132,27 @@ export default function VisitsChart({ businessId }: { businessId: number }) {
         fontSize: '14px'
       }}>
         {error}
+      </div>
+    )
+  }
+
+  // Если данных нет (но totalVisits > 0) - показываем пустой график
+  if (chartData.length === 0) {
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '16px',
+        border: `1px solid ${COLORS.border}`,
+        padding: '40px',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '64px', marginBottom: '16px', color: '#e0e0e0' }}>📉</div>
+        <h3 style={{ fontSize: '18px', fontWeight: '600', color: COLORS.text, marginBottom: '8px' }}>
+          Нет данных за период
+        </h3>
+        <p style={{ color: '#999', fontSize: '14px', lineHeight: '1.5' }}>
+          Данные за последние 14 дней отсутствуют
+        </p>
       </div>
     )
   }
@@ -193,8 +239,8 @@ export default function VisitsChart({ businessId }: { businessId: number }) {
   }
 
   // Статистика для графика
-  const totalVisits = chartData.reduce((sum, item) => sum + item.visits, 0)
-  const avgVisits = Math.round(totalVisits / chartData.length)
+  const totalVisitsPeriod = chartData.reduce((sum, item) => sum + item.visits, 0)
+  const avgVisits = Math.round(totalVisitsPeriod / chartData.length)
   const maxVisits = Math.max(...chartData.map(item => item.visits))
   const maxDay = chartData.find(item => item.visits === maxVisits)?.date
 
@@ -230,7 +276,7 @@ export default function VisitsChart({ businessId }: { businessId: number }) {
             График посещений за 2 недели
           </h2>
         </div>
-
+        
         {/* Статистика */}
         <div style={{
           display: 'grid',
@@ -238,7 +284,7 @@ export default function VisitsChart({ businessId }: { businessId: number }) {
           gap: '16px',
           marginTop: '16px'
         }}>
-          <StatItem label="Всего" value={totalVisits.toString()} color={COLORS.primary} />
+          <StatItem label="Всего" value={totalVisitsPeriod.toString()} color={COLORS.primary} />
           <StatItem label="Среднее" value={`${avgVisits}/день`} color="#4CAF50" />
           <StatItem label="Максимум" value={`${maxVisits}`} color="#FF9800" />
           <StatItem label="Пик" value={maxDay || '-'} color="#9C27B0" />
