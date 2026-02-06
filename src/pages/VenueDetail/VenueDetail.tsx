@@ -28,16 +28,25 @@ interface Venue {
   is_active: boolean
 }
 
+interface VenueStats {
+  today: number
+  week: number
+  month: number
+  total: number
+}
+
 export default function VenueDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [venue, setVenue] = useState<Venue | null>(null)
+  const [venueStats, setVenueStats] = useState<VenueStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (id) {
       fetchVenue(Number(id))
+      fetchVenueStats(Number(id))
     }
   }, [id])
 
@@ -52,6 +61,17 @@ export default function VenueDetail() {
       setError(err.response?.data?.message || 'Ошибка загрузки заведения')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchVenueStats = async (venueId: number) => {
+    try {
+      const response = await adminApi.getVenueStats(venueId)
+      setVenueStats(response.data)
+    } catch (err: any) {
+      console.error('Error fetching venue stats:', err)
+      // Не показываем ошибку, просто оставляем 0
+      setVenueStats({ today: 0, week: 0, month: 0, total: 0 })
     }
   }
 
@@ -87,13 +107,6 @@ export default function VenueDetail() {
         {error || 'Заведение не найдено'}
       </div>
     )
-  }
-
-  // Статистика для примера (в реальности нужно получать с бэкенда)
-  const stats = {
-    today: Math.floor(Math.random() * 20),
-    week: Math.floor(Math.random() * 80),
-    month: Math.floor(Math.random() * 250)
   }
 
   return (
@@ -165,7 +178,7 @@ export default function VenueDetail() {
         </div>
       </div>
 
-      {/* Статистика */}
+      {/* Статистика - РЕАЛЬНЫЕ ДАННЫЕ */}
       <div style={{ marginBottom: '32px' }}>
         <h2 style={{
           fontSize: '20px',
@@ -186,28 +199,28 @@ export default function VenueDetail() {
         }}>
           <StatCard 
             title="Посещений сегодня" 
-            value={stats.today} 
+            value={venueStats?.today || 0} 
             icon={faCalendar} 
             color="#2196F3"
             bgColor="rgba(33, 150, 243, 0.1)"
           />
           <StatCard 
             title="Посещений за неделю" 
-            value={stats.week} 
+            value={venueStats?.week || 0} 
             icon={faCalendar} 
             color="#FF9800"
             bgColor="rgba(255, 152, 0, 0.1)"
           />
           <StatCard 
             title="Посещений за месяц" 
-            value={stats.month} 
+            value={venueStats?.month || 0} 
             icon={faCalendar} 
             color="#9C27B0"
             bgColor="rgba(156, 39, 176, 0.1)"
           />
           <StatCard 
             title="Всего посещений" 
-            value={venue.visits_count || 0} 
+            value={venueStats?.total || venue.visits_count || 0} 
             icon={faUsers} 
             color="#4CAF50"
             bgColor="rgba(76, 175, 80, 0.1)"
@@ -284,16 +297,16 @@ export default function VenueDetail() {
       </div>
 
       {/* Топ-5 посетителей */}
-      {venue.visits_count && venue.visits_count > 0 && (
+      {venueStats?.total && venueStats.total > 0 && (
         <div style={{ marginBottom: '32px' }}>
           <TopVisitors businessId={venue.id} />
         </div>
       )}
 
       {/* График посещений */}
-      {venue.visits_count && venue.visits_count > 0 && (
+      {venueStats?.total && venueStats.total > 0 && (
         <div style={{ marginBottom: '32px' }}>
-          <VisitsChart businessId={venue.id} totalVisits={venue.visits_count} />
+          <VisitsChart businessId={venue.id} totalVisits={venueStats.total} />
         </div>
       )}
 

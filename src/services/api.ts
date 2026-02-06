@@ -26,9 +26,12 @@ export const adminApi = {
   // Заведения
   getVenues: () => api.get('/admin/venues'),
   getVenueById: (id: number) => api.get(`/admin/venues/${id}`),
-  createVenue: (data: any) => api.post('/admin/venues', data),
+  createVenue: ( any) => api.post('/admin/venues', data),
   updateVenue: (id: number, data: any) => api.put(`/admin/venues/${id}`, data),
   deleteVenue: (id: number) => api.delete(`/admin/venues/${id}`),
+  
+  // Статистика заведения
+  getVenueStats: (venueId: number) => api.get(`/admin/venues/${venueId}/stats`),
   
   // Посещения с пагинацией
   getVisitsByBusiness: (businessId: number, page: number = 1, limit: number = 20) => 
