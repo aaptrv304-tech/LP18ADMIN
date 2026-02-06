@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminApi } from '../../services/api'
 import { COLORS } from '../../pages/Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendar, faUser, faAward, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCalendar, faUser, faAward, faClock, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 
 interface Visit {
   id: string
@@ -14,31 +14,88 @@ interface Visit {
   created_at: string
 }
 
+interface VisitResponse {
+  visits: Visit[]
+  total_count: number
+  page: number
+  limit: number
+  total_pages: number
+}
+
 export default function VisitList({ businessId }: { businessId: number }) {
   const [visits, setVisits] = useState<Visit[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [limit] = useState(20)
 
   useEffect(() => {
     fetchVisits()
-  }, [businessId])
+  }, [businessId, currentPage])
 
   const fetchVisits = async () => {
     try {
       setLoading(true)
-      const response = await adminApi.getVisitsByBusiness(businessId, 50)
+      const response = await adminApi.getVisitsByBusiness(businessId, currentPage, limit)
       
-      // Нормализуем данные: если ответ не массив, используем пустой массив
-      const data = Array.isArray(response.data) ? response.data : []
-      setVisits(data)
+      const data: VisitResponse = response.data
+      
+      setVisits(Array.isArray(data.visits) ? data.visits : [])
+      setTotalCount(data.total_count || 0)
+      setTotalPages(data.total_pages || 0)
       setError(null)
     } catch (err: any) {
       console.error('Error fetching visits:', err)
       setError(err.response?.data?.message || 'Ошибка загрузки посещений')
-      setVisits([]) // Устанавливаем пустой массив при ошибке
+      setVisits([])
+      setTotalCount(0)
+      setTotalPages(0)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page)
+    }
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = []
+    const maxVisible = 5
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1)
+        pages.push('...')
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i)
+        }
+      } else {
+        pages.push(1)
+        pages.push('...')
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i)
+        }
+        pages.push('...')
+        pages.push(totalPages)
+      }
+    }
+
+    return pages
   }
 
   if (loading) {
@@ -69,7 +126,6 @@ export default function VisitList({ businessId }: { businessId: number }) {
     )
   }
 
-  // Безопасная проверка на пустой массив
   if (!visits || visits.length === 0) {
     return (
       <div style={{
@@ -86,6 +142,7 @@ export default function VisitList({ businessId }: { businessId: number }) {
 
   return (
     <div>
+      {/* Заголовок с информацией о пагинации */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -101,7 +158,7 @@ export default function VisitList({ businessId }: { businessId: number }) {
             Последние посещения
           </div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', color: COLORS.text }}>
-            {visits.length} посещений
+            {totalCount} посещений
           </div>
         </div>
         <button
@@ -125,14 +182,131 @@ export default function VisitList({ businessId }: { businessId: number }) {
         </button>
       </div>
 
+      {/* Список посещений */}
       <div style={{
         display: 'grid',
-        gap: '12px'
+        gap: '12px',
+        marginBottom: '24px'
       }}>
         {visits.map((visit) => (
           <VisitCard key={visit.id} visit={visit} />
         ))}
       </div>
+
+      {/* Пагинация */}
+      {totalPages > 1 && (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '16px',
+          backgroundColor: '#f9fafb',
+          borderRadius: '12px',
+          border: `1px solid ${COLORS.border}`
+        }}>
+          {/* Кнопка "Назад" */}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage === 1 ? '#e0e0e0' : '#f5f5f5',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+              color: currentPage === 1 ? '#999' : '#666',
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (currentPage !== 1) {
+                e.currentTarget.style.backgroundColor = '#e0e0e0'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentPage !== 1) {
+                e.currentTarget.style.backgroundColor = '#f5f5f5'
+              }
+            }}
+          >
+            <FontAwesomeIcon icon={faChevronLeft} />
+          </button>
+
+          {/* Номера страниц */}
+          {getPageNumbers().map((page, index) => (
+            page === '...' ? (
+              <span 
+                key={`ellipsis-${index}`} 
+                style={{ 
+                  padding: '8px 12px', 
+                  color: '#999',
+                  fontSize: '14px'
+                }}
+              >
+                ...
+              </span>
+            ) : (
+              <button
+                key={`page-${page}`}
+                onClick={() => handlePageChange(page as number)}
+                style={{
+                  padding: '8px 12px',
+                  backgroundColor: currentPage === page ? COLORS.primary : '#f5f5f5',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  color: currentPage === page ? 'white' : '#666',
+                  fontSize: '14px',
+                  fontWeight: currentPage === page ? '600' : '400',
+                  minWidth: '32px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== page) {
+                    e.currentTarget.style.backgroundColor = '#e0e0e0'
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== page) {
+                    e.currentTarget.style.backgroundColor = '#f5f5f5'
+                  }
+                }}
+              >
+                {page}
+              </button>
+            )
+          ))}
+
+          {/* Кнопка "Вперед" */}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: currentPage === totalPages ? '#e0e0e0' : '#f5f5f5',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+              color: currentPage === totalPages ? '#999' : '#666',
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (currentPage !== totalPages) {
+                e.currentTarget.style.backgroundColor = '#e0e0e0'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentPage !== totalPages) {
+                e.currentTarget.style.backgroundColor = '#f5f5f5'
+              }
+            }}
+          >
+            <FontAwesomeIcon icon={faChevronRight} />
+          </button>
+        </div>
+      )}
     </div>
   )
 }
