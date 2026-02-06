@@ -50,6 +50,7 @@ export const adminApi = {
   createReward: (businessId: number, reward: any) => api.post(`/admin/venues/${businessId}/rewards`, reward),
   updateReward: (rewardId: number, reward: any) => api.put(`/admin/rewards/${rewardId}`, reward),
   deleteReward: (rewardId: number) => api.delete(`/admin/rewards/${rewardId}`),
+  toggleRewardActive: (rewardId: number) => api.patch(`/admin/rewards/${rewardId}/toggle-active`),
   
   // Пользователи
   getUsers: () => api.get('/admin/users'),

@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../services/api'
 import { COLORS } from '../../pages/Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faGift, 
-  faPlus, 
-  faPen, 
-  faTrash, 
-  faToggleOn, 
+import {
+  faGift,
+  faPlus,
+  faPen,
+  faTrash,
+  faToggleOn,
   faToggleOff,
   faCheckCircle,
   faTimesCircle,
@@ -85,7 +85,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
     try {
       setLoading(true)
       const response = await adminApi.getRewards(businessId)
-      
+
       // Нормализуем данные: если ответ не массив — используем пустой массив
       const data = Array.isArray(response.data) ? response.data : []
       setRewards(data)
@@ -132,7 +132,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
   const handleDeleteReward = async (id: number) => {
     if (!confirm('Вы уверены, что хотите удалить эту награду?')) return
-    
+
     try {
       await adminApi.deleteReward(id)
       setRewards(rewards.filter(r => r.id !== id))
@@ -144,19 +144,23 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
   const handleToggleActive = async (reward: Reward) => {
     try {
+      // ✅ Отправляем запрос на новый эндпоинт
+      await adminApi.toggleRewardActive(reward.id)
+
+      // Обновляем локальное состояние
       const updatedReward = { ...reward, is_active: !reward.is_active }
-      await adminApi.updateReward(reward.id, { is_active: updatedReward.is_active })
-      setRewards(rewards.map(r => 
+      setRewards(rewards.map(r =>
         r.id === reward.id ? updatedReward : r
       ))
     } catch (err: any) {
+      console.error('Ошибка при переключении статуса:', err)
       alert(err.response?.data?.message || 'Ошибка при обновлении статуса')
     }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.name || !formData.points_cost) {
       alert('Пожалуйста, заполните все обязательные поля')
       return
@@ -179,7 +183,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
       if (editingReward) {
         await adminApi.updateReward(editingReward.id, rewardData)
-        setRewards(rewards.map(r => 
+        setRewards(rewards.map(r =>
           r.id === editingReward.id ? { ...r, ...rewardData } : r
         ))
         alert('Награда успешно обновлена!')
@@ -188,7 +192,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
         setRewards([...rewards, response.data])
         alert('Награда успешно добавлена!')
       }
-      
+
       setIsModalOpen(false)
     } catch (err: any) {
       alert(err.response?.data?.message || 'Ошибка при сохранении награды')
@@ -199,7 +203,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
     return ICON_STYLES[iconName as keyof typeof ICON_STYLES] || ICON_STYLES.default
   }
 
-  const filteredIcons = ICON_OPTIONS.filter(icon => 
+  const filteredIcons = ICON_OPTIONS.filter(icon =>
     icon.label.toLowerCase().includes(searchIcon.toLowerCase()) ||
     icon.name.includes(searchIcon.toLowerCase())
   )
@@ -221,9 +225,9 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
   return (
     <div>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: '20px'
       }}>
@@ -270,7 +274,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
           <span>Добавить награду</span>
         </button>
       </div>
-      
+
       <div style={{
         backgroundColor: 'white',
         borderRadius: '16px',
@@ -299,10 +303,10 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {rewards.map((reward) => (
-              <RewardCard 
-                key={reward.id} 
-                reward={reward} 
-                onEdit={handleEditReward} 
+              <RewardCard
+                key={reward.id}
+                reward={reward}
+                onEdit={handleEditReward}
                 onDelete={handleDeleteReward}
                 onToggleActive={handleToggleActive}
                 getIconStyle={getIconStyle}
@@ -375,12 +379,12 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: '#333', 
-                  marginBottom: '8px' 
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333',
+                  marginBottom: '8px'
                 }}>
                   Название награды <span style={{ color: COLORS.primary }}>*</span>
                 </label>
@@ -405,12 +409,12 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
               </div>
 
               <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: '#333', 
-                  marginBottom: '8px' 
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333',
+                  marginBottom: '8px'
                 }}>
                   Описание
                 </label>
@@ -436,12 +440,12 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
               </div>
 
               <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: '#333', 
-                  marginBottom: '8px' 
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333',
+                  marginBottom: '8px'
                 }}>
                   Стоимость в очках <span style={{ color: COLORS.primary }}>*</span>
                 </label>
@@ -471,16 +475,16 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
 
               {/* Выбор иконки */}
               <div>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '14px', 
-                  fontWeight: '600', 
-                  color: '#333', 
-                  marginBottom: '12px' 
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#333',
+                  marginBottom: '12px'
                 }}>
                   Выберите иконку награды
                 </label>
-                
+
                 <div style={{ marginBottom: '12px' }}>
                   <div style={{
                     position: 'relative',
@@ -517,9 +521,9 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
                     />
                   </div>
                 </div>
-                
-                <div style={{ 
-                  display: 'grid', 
+
+                <div style={{
+                  display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))',
                   gap: '12px',
                   maxHeight: '200px',
@@ -532,7 +536,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
                   {filteredIcons.map((option) => {
                     const isSelected = formData.icon === option.name
                     const style = getIconStyle(option.name)
-                    
+
                     return (
                       <button
                         key={option.name}
@@ -561,16 +565,16 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
                           e.currentTarget.style.boxShadow = 'none'
                         }}
                       >
-                        <FontAwesomeIcon 
-                          icon={option.icon} 
-                          style={{ 
-                            fontSize: '24px', 
+                        <FontAwesomeIcon
+                          icon={option.icon}
+                          style={{
+                            fontSize: '24px',
                             color: style.color,
                             marginBottom: '4px'
-                          }} 
+                          }}
                         />
-                        <span style={{ 
-                          fontSize: '10px', 
+                        <span style={{
+                          fontSize: '10px',
                           fontWeight: '500',
                           color: '#666',
                           textAlign: 'center',
@@ -658,21 +662,21 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
   )
 }
 
-function RewardCard({ 
-  reward, 
-  onEdit, 
+function RewardCard({
+  reward,
+  onEdit,
   onDelete,
   onToggleActive,
   getIconStyle
-}: { 
-  reward: Reward; 
-  onEdit: (reward: Reward) => void; 
+}: {
+  reward: Reward;
+  onEdit: (reward: Reward) => void;
   onDelete: (id: number) => void;
   onToggleActive: (reward: Reward) => void;
   getIconStyle: (iconName: string) => { bg: string; color: string };
 }) {
   const iconStyle = getIconStyle(reward.icon || 'gift')
-  
+
   return (
     <div style={{
       backgroundColor: 'white',
@@ -682,14 +686,14 @@ function RewardCard({
       transition: 'all 0.2s',
       boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
     }}
-    onMouseEnter={(e) => {
-      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)'
-      e.currentTarget.style.transform = 'translateY(-2px)'
-    }}
-    onMouseLeave={(e) => {
-      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'
-      e.currentTarget.style.transform = 'translateY(0)'
-    }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.1)'
+        e.currentTarget.style.transform = 'translateY(-2px)'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)'
+        e.currentTarget.style.transform = 'translateY(0)'
+      }}
     >
       {/* Иконка награды */}
       <div style={{
@@ -701,25 +705,25 @@ function RewardCard({
         position: 'relative',
         overflow: 'hidden'
       }}>
-        <FontAwesomeIcon 
+        <FontAwesomeIcon
           icon={
             reward.icon === 'gift' ? faGift :
-            reward.icon === 'percent' ? faPercent :
-            reward.icon === 'mug-hot' ? faMugHot :
-            reward.icon === 'scissors' ? faScissors :
-            reward.icon === 'star' ? faStar :
-            reward.icon === 'utensils' ? faUtensils :
-            reward.icon === 'spa' ? faSpa :
-            reward.icon === 'crown' ? faCrown :
-            reward.icon === 'cake-candles' ? faCakeCandles :
-            reward.icon === 'tooth' ? faTooth : faGift
-          } 
-          style={{ 
-            fontSize: '48px', 
-            color: iconStyle.color 
-          }} 
+              reward.icon === 'percent' ? faPercent :
+                reward.icon === 'mug-hot' ? faMugHot :
+                  reward.icon === 'scissors' ? faScissors :
+                    reward.icon === 'star' ? faStar :
+                      reward.icon === 'utensils' ? faUtensils :
+                        reward.icon === 'spa' ? faSpa :
+                          reward.icon === 'crown' ? faCrown :
+                            reward.icon === 'cake-candles' ? faCakeCandles :
+                              reward.icon === 'tooth' ? faTooth : faGift
+          }
+          style={{
+            fontSize: '48px',
+            color: iconStyle.color
+          }}
         />
-        
+
         {/* Статус активности */}
         {reward.is_active ? (
           <div style={{
@@ -753,12 +757,12 @@ function RewardCard({
           </div>
         )}
       </div>
-      
+
       {/* Контент награды */}
       <div style={{ padding: '16px' }}>
-        <h3 style={{ 
-          fontSize: '16px', 
-          fontWeight: '600', 
+        <h3 style={{
+          fontSize: '16px',
+          fontWeight: '600',
           color: COLORS.text,
           marginBottom: '8px',
           display: '-webkit-box',
@@ -768,10 +772,10 @@ function RewardCard({
         }}>
           {reward.name}
         </h3>
-        
-        <div style={{ 
-          fontSize: '20px', 
-          fontWeight: 'bold', 
+
+        <div style={{
+          fontSize: '20px',
+          fontWeight: 'bold',
           color: COLORS.primary,
           marginBottom: '12px',
           display: 'flex',
@@ -781,11 +785,11 @@ function RewardCard({
           <span>⭐</span>
           <span>{reward.points_cost} очков</span>
         </div>
-        
+
         {reward.description && (
-          <p style={{ 
-            fontSize: '14px', 
-            color: '#666', 
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
             marginBottom: '12px',
             lineHeight: '1.5',
             display: '-webkit-box',
@@ -796,9 +800,9 @@ function RewardCard({
             {reward.description}
           </p>
         )}
-        
-        <div style={{ 
-          fontSize: '13px', 
+
+        <div style={{
+          fontSize: '13px',
           color: '#999',
           marginBottom: '12px'
         }}>
@@ -808,11 +812,11 @@ function RewardCard({
             year: 'numeric'
           })}
         </div>
-        
+
         {/* Статус и кнопки */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
           paddingTop: '12px',
           borderTop: `1px solid ${COLORS.border}`
@@ -850,7 +854,7 @@ function RewardCard({
               </span>
             )}
           </div>
-          
+
           <div style={{ display: 'flex', gap: '6px' }}>
             <button
               onClick={() => onToggleActive(reward)}
@@ -877,7 +881,7 @@ function RewardCard({
             >
               <FontAwesomeIcon icon={reward.is_active ? faToggleOn : faToggleOff} size="lg" />
             </button>
-            
+
             <button
               onClick={() => onEdit(reward)}
               style={{
@@ -905,7 +909,7 @@ function RewardCard({
             >
               <FontAwesomeIcon icon={faPen} size="sm" />
             </button>
-            
+
             <button
               onClick={() => onDelete(reward.id)}
               style={{

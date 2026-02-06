@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { adminApi } from '../../services/api'
 import { COLORS } from '../../pages/Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCrown, faUser, faCalendar } from '@fortawesome/free-solid-svg-icons'
+import { faCrown, faCalendar } from '@fortawesome/free-solid-svg-icons'
 
 interface Visitor {
   user_id: string

@@ -34,10 +34,6 @@ interface ChartDataPoint {
   visits: number
 }
 
-interface ChartResponse {
-  data: { date: string; visits: number }[]
-}
-
 interface VisitsChartProps {
   businessId: number
   totalVisits: number
