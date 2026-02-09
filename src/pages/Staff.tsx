@@ -154,7 +154,7 @@ export default function StaffPage() {
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
     const [isLoading, setIsLoading] = useState(false)
     const [codeError, setCodeError] = useState('')
-    const [expandedVenues, setExpandedVenues] = useState<number[]>([]) // ← ДОБАВЛЕНО: отслеживаем развёрнутые заведения
+    const [expandedVenues, setExpandedVenues] = useState<number[]>([])
 
     // Симуляция поиска кассира по коду
     const searchStaffByCode = async (code: string) => {
@@ -228,6 +228,15 @@ export default function StaffPage() {
 
         setStaffList(staffList.filter(s => s.id !== id))
         alert('Кассир успешно удалён!')
+    }
+
+    // Переключение статуса кассира БЕЗ алерта
+    const handleToggleActive = (staff: Staff) => {
+        const updatedStaff = { ...staff, is_active: !staff.is_active }
+        setStaffList(staffList.map(s => s.id === staff.id ? updatedStaff : s))
+
+        // TODO: Отправить запрос на бэкенд для обновления статуса
+        // Например: await adminApi.toggleStaffActive(staff.id, updatedStaff.is_active)
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -370,7 +379,7 @@ export default function StaffPage() {
                             }}
                         >
                             <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
-                            Ожидают
+                            Неактивные
                         </button>
                     </div>
 
@@ -453,7 +462,7 @@ export default function StaffPage() {
                                 overflow: 'hidden'
                             }}
                         >
-                            {/* Заголовок заведения */}
+                            {/* Заголовок заведения - УПРОЩЁННЫЙ */}
                             <div
                                 onClick={() => toggleVenue(group.venue.id)}
                                 style={{
@@ -480,38 +489,15 @@ export default function StaffPage() {
                                         </p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '20px',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            backgroundColor: '#e8f5e9',
-                                            color: '#2e7d32'
-                                        }}>
-                                            {group.staff.filter(s => s.is_active).length} активных
-                                        </span>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '20px',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            backgroundColor: '#fff3e0',
-                                            color: '#e65100'
-                                        }}>
-                                            {group.staff.filter(s => !s.is_active).length} ожидают
-                                        </span>
-                                    </div>
-                                    <FontAwesomeIcon
-                                        icon={expandedVenues.includes(group.venue.id) ? faChevronUp : faChevronDown}
-                                        color={COLORS.primary}
-                                        size="lg"
-                                    />
-                                </div>
+                                {/* УБРАНА СТАТИСТИКА АКТИВНЫХ/НЕАКТИВНЫХ */}
+                                <FontAwesomeIcon
+                                    icon={expandedVenues.includes(group.venue.id) ? faChevronUp : faChevronDown}
+                                    color={COLORS.primary}
+                                    size="lg"
+                                />
                             </div>
 
-                            {/* Список кассиров (показываем только если секция развёрнута) */}
+                            {/* Список кассиров */}
                             {expandedVenues.includes(group.venue.id) && (
                                 <div>
                                     {group.staff.length === 0 ? (
@@ -567,30 +553,50 @@ export default function StaffPage() {
                                                                 <span>{staff.username}</span>
                                                             </div>
                                                         </td>
-                                                        <td style={{ padding: '16px 24px' }}>
+                                                        <td
+                                                            style={{
+                                                                padding: '16px 24px',
+                                                                cursor: 'pointer',
+                                                                transition: 'background-color 0.2s'
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleToggleActive(staff)
+                                                            }}
+                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                        >
                                                             {staff.is_active ? (
                                                                 <span style={{
-                                                                    padding: '4px 12px',
+                                                                    padding: '6px 16px',
                                                                     borderRadius: '20px',
-                                                                    fontSize: '12px',
+                                                                    fontSize: '13px',
                                                                     fontWeight: '600',
                                                                     backgroundColor: '#e8f5e9',
-                                                                    color: '#2e7d32'
+                                                                    color: '#2e7d32',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px',
+                                                                    transition: 'all 0.2s'
                                                                 }}>
-                                                                    <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '4px' }} />
-                                                                    Активен
+                                                                    <FontAwesomeIcon icon={faCheckCircle} />
+                                                                    <span>Активен</span>
                                                                 </span>
                                                             ) : (
                                                                 <span style={{
-                                                                    padding: '4px 12px',
+                                                                    padding: '6px 16px',
                                                                     borderRadius: '20px',
-                                                                    fontSize: '12px',
+                                                                    fontSize: '13px',
                                                                     fontWeight: '600',
-                                                                    backgroundColor: '#fff3e0',
-                                                                    color: '#e65100'
+                                                                    backgroundColor: '#ffebee',
+                                                                    color: '#c62828',
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px',
+                                                                    transition: 'all 0.2s'
                                                                 }}>
-                                                                    <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
-                                                                    Ожидает
+                                                                    <FontAwesomeIcon icon={faClock} />
+                                                                    <span>Неактивен</span>
                                                                 </span>
                                                             )}
                                                         </td>
@@ -613,6 +619,7 @@ export default function StaffPage() {
                                                                     }}
                                                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#bbdefb'}
                                                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
+                                                                    title="Редактировать"
                                                                 >
                                                                     <FontAwesomeIcon icon={faPen} size="sm" />
                                                                 </button>
@@ -633,6 +640,7 @@ export default function StaffPage() {
                                                                     }}
                                                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ffcdd2'}
                                                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffebee'}
+                                                                    title="Удалить"
                                                                 >
                                                                     <FontAwesomeIcon icon={faTrash} size="sm" />
                                                                 </button>
@@ -804,6 +812,42 @@ export default function StaffPage() {
                                                 <span style={{ fontSize: '14px', fontWeight: '600', color: COLORS.text }}>{formData.username}</span>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Простое отображение статуса */}
+                                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: `1px solid ${COLORS.border}` }}>
+                                        <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Статус</p>
+                                        {formData.is_active ? (
+                                            <span style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '20px',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                backgroundColor: '#e8f5e9',
+                                                color: '#2e7d32',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}>
+                                                <FontAwesomeIcon icon={faCheckCircle} />
+                                                <span>Активен</span>
+                                            </span>
+                                        ) : (
+                                            <span style={{
+                                                padding: '4px 12px',
+                                                borderRadius: '20px',
+                                                fontSize: '13px',
+                                                fontWeight: '600',
+                                                backgroundColor: '#ffebee',
+                                                color: '#c62828',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px'
+                                            }}>
+                                                <FontAwesomeIcon icon={faClock} />
+                                                <span>Неактивен</span>
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             )}
