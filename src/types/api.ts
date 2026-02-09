@@ -88,3 +88,16 @@ export interface Stats {
   visits_this_month: number
   active_users: number
 }
+
+// Типы для персонала
+export interface Staff {
+  id: number
+  name: string
+  phone: string
+  email: string
+  role: string
+  is_active: boolean
+  business_ids: number[]
+  created_at: string
+  updated_at: string
+}

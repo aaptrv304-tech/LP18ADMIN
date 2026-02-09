@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { 
-  faChartLine, 
-  faStore, 
-  faUsers, 
-  faChartBar, 
-  faCog 
+import {
+  faChartLine,
+  faStore,
+  faUsers,
+  faChartBar,
+  faCog
 } from '@fortawesome/free-solid-svg-icons'
 import { COLORS } from '../../../pages/Landing'
 
@@ -18,7 +18,7 @@ export default function Sidebar({ businessName, onLogout }: SidebarProps) {
   const menuItems = [
     { path: '/dashboard', label: 'Статистика', icon: faChartLine },
     { path: '/venues', label: 'Заведения', icon: faStore },
-    { path: '/users', label: 'Пользователи', icon: faUsers },
+    { path: '/users', label: 'Персонал', icon: faUsers },
     { path: '/analytics', label: 'Аналитика', icon: faChartBar },
     { path: '/settings', label: 'Настройки', icon: faCog },
   ]
@@ -53,10 +53,10 @@ export default function Sidebar({ businessName, onLogout }: SidebarProps) {
             transform: 'rotate(12deg)',
             boxShadow: '0 4px 12px rgba(255, 140, 66, 0.3)'
           }}>
-            <FontAwesomeIcon 
-              icon={faChartLine} 
-              color="white" 
-              size="lg" 
+            <FontAwesomeIcon
+              icon={faChartLine}
+              color="white"
+              size="lg"
               style={{ transform: 'rotate(-12deg)' }}
             />
           </div>

@@ -8,6 +8,7 @@ import Venues from './pages/Venues'
 import VenuesNew from './pages/VenuesNew'
 import VenueDetailPage from './pages/VenueDetail'
 import Layout from './components/ui/layout/Layout'
+import Staff from './pages/Staff' // ← ДОБАВЬТЕ ЭТУ СТРОКУ
 
 // Защищённый роут
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -56,7 +57,7 @@ function App() {
         {/* Публичные маршруты */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        
+
         {/* Защищённые маршруты */}
         <Route
           path="/dashboard"
@@ -98,12 +99,25 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
-        {/* Редирект */}
-        <Route 
-          path="*" 
-          element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />} 
+
+        {/* ✅ НОВЫЙ МАРШРУТ - Персонал */}
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Staff />
+              </Layout>
+            </ProtectedRoute>
+          }
         />
+
+        {/* Редирект */}
+        <Route
+          path="*"
+          element={<Navigate to={isAuthenticated ? '/dashboard' : '/'} replace />}
+        />
+
       </Routes>
     </Router>
   )
