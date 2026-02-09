@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { COLORS } from './Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -8,7 +8,9 @@ import {
     faTrash,
     faStore,
     faSearch,
-    faPaperPlane
+    faPaperPlane,
+    faClock,
+    faCheckCircle
 } from '@fortawesome/free-solid-svg-icons'
 
 // Моковые данные для демонстрации
@@ -20,52 +22,99 @@ const mockVenues = [
     { id: 5, name: 'Ресторан Вкусно' }
 ]
 
+// Моковые данные кассиров (одна запись = один кассир в одном заведении)
 const mockStaff = [
     {
         id: 1,
         name: 'Иван Иванов',
-        phone: '+7 (999) 123-45-67',
-        telegram: '@ivan_ivanov',
+        telegram_id: 6817610322,
+        username: '@ivan_ivanov',
+        first_name: 'Иван',
+        last_name: 'Иванов',
+        activation_code: '123456',
+        business_id: 1,
+        business_name: 'Кофейня Уют',
         role: 'cashier',
         is_active: true,
-        business_ids: [1, 2],
         created_at: '2026-01-15T10:00:00Z',
-        updated_at: '2026-02-01T14:30:00Z'
+        last_active: '2026-02-07T14:30:00Z' // ← Строка, не null
     },
     {
         id: 2,
         name: 'Мария Петрова',
-        phone: '+7 (999) 234-56-78',
-        telegram: '@maria_petrova',
+        telegram_id: 7915289396,
+        username: '@maria_petrova',
+        first_name: 'Мария',
+        last_name: 'Петрова',
+        activation_code: '789012',
+        business_id: 3,
+        business_name: 'Стоматология Улыбка',
         role: 'cashier',
         is_active: true,
-        business_ids: [3],
         created_at: '2026-01-20T11:00:00Z',
-        updated_at: '2026-02-05T09:15:00Z'
+        last_active: '2026-02-06T09:15:00Z' // ← Строка
     },
     {
         id: 3,
         name: 'Алексей Смирнов',
-        phone: '+7 (999) 345-67-89',
-        telegram: '@alex_smirnov',
+        telegram_id: 1234567890,
+        username: '@alex_smirnov',
+        first_name: 'Алексей',
+        last_name: 'Смирнов',
+        activation_code: '345678',
+        business_id: 4,
+        business_name: 'Барбершоп Мастер',
         role: 'cashier',
         is_active: false,
-        business_ids: [4, 5],
         created_at: '2026-01-25T12:00:00Z',
-        updated_at: '2026-02-07T16:45:00Z'
+        last_active: null // ← Теперь допустимо
+    },
+    {
+        id: 4,
+        name: 'Петя Иванов',
+        telegram_id: 9876543210,
+        username: '@petya_ivanov',
+        first_name: 'Петя',
+        last_name: 'Иванов',
+        activation_code: '901234',
+        business_id: 1,
+        business_name: 'Кофейня Уют',
+        role: 'cashier',
+        is_active: true,
+        created_at: '2026-02-01T10:00:00Z',
+        last_active: '2026-02-07T16:45:00Z' // ← Строка
+    },
+    {
+        id: 5,
+        name: 'Петя Иванов',
+        telegram_id: 9876543210,
+        username: '@petya_ivanov',
+        first_name: 'Петя',
+        last_name: 'Иванов',
+        activation_code: '901234',
+        business_id: 3,
+        business_name: 'Стоматология Улыбка',
+        role: 'cashier',
+        is_active: true,
+        created_at: '2026-02-01T10:05:00Z',
+        last_active: '2026-02-07T17:00:00Z' // ← Строка
     }
 ]
 
 interface Staff {
     id: number
     name: string
-    phone: string
-    telegram: string
+    telegram_id: number
+    username: string
+    first_name: string
+    last_name: string
+    activation_code: string
+    business_id: number
+    business_name: string
     role: string
     is_active: boolean
-    business_ids: number[]
     created_at: string
-    updated_at: string
+    last_active: string | null // ← ИЗМЕНЕНО: добавлен тип null
 }
 
 export default function StaffPage() {
@@ -74,92 +123,142 @@ export default function StaffPage() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
     const [formData, setFormData] = useState({
+        activation_code: '',
+        business_id: 0,
         name: '',
-        phone: '',
-        telegram: '',
-        role: 'cashier' as const, // Фиксированная роль
-        is_active: true,
-        business_ids: [] as number[]
+        username: '',
+        first_name: '',
+        last_name: '',
+        telegram_id: 0,
+        role: 'cashier' as string,
+        is_active: true
     })
     const [searchTerm, setSearchTerm] = useState('')
+    const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
+    const [isLoading, setIsLoading] = useState(false)
+    const [codeError, setCodeError] = useState('')
+
+    // Симуляция поиска кассира по коду
+    const searchStaffByCode = async (code: string) => {
+        setIsLoading(true)
+        setCodeError('')
+
+        // Валидация кода (6 цифр)
+        if (!/^\d{6}$/.test(code)) {
+            setCodeError('Код должен состоять из 6 цифр')
+            setIsLoading(false)
+            return
+        }
+
+        // Имитация запроса к бэкенду
+        await new Promise(resolve => setTimeout(resolve, 800))
+
+        // Ищем кассира по коду в моковых данных
+        const found = mockStaff.find(s => s.activation_code === code && !s.business_id)
+
+        if (found) {
+            // Заполняем форму данными кассира
+            setFormData({
+                activation_code: found.activation_code,
+                business_id: 0, // Пока не выбрано
+                name: found.name,
+                username: found.username,
+                first_name: found.first_name,
+                last_name: found.last_name,
+                telegram_id: found.telegram_id,
+                role: 'cashier',
+                is_active: true
+            })
+        } else {
+            setCodeError('Кассир с таким кодом не найден или уже привязан')
+        }
+
+        setIsLoading(false)
+    }
 
     const handleAddStaff = () => {
         setEditingStaff(null)
         setFormData({
+            activation_code: '',
+            business_id: 0,
             name: '',
-            phone: '',
-            telegram: '',
+            username: '',
+            first_name: '',
+            last_name: '',
+            telegram_id: 0,
             role: 'cashier',
-            is_active: true,
-            business_ids: []
+            is_active: true
         })
+        setCodeError('')
         setIsModalOpen(true)
     }
 
     const handleEditStaff = (staff: Staff) => {
         setEditingStaff(staff)
         setFormData({
+            activation_code: staff.activation_code,
+            business_id: staff.business_id,
             name: staff.name,
-            phone: staff.phone || '',
-            telegram: staff.telegram || '',
-            role: 'cashier', // ✅ Просто строка, без строгой типизации
-            is_active: staff.is_active,
-            business_ids: staff.business_ids || []
+            username: staff.username,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            telegram_id: staff.telegram_id,
+            role: staff.role,
+            is_active: staff.is_active
         })
         setIsModalOpen(true)
     }
 
     const handleDeleteStaff = (id: number) => {
-        if (!confirm('Вы уверены, что хотите удалить этого сотрудника?')) return
+        if (!confirm('Вы уверены, что хотите удалить этого кассира?')) return
 
         setStaffList(staffList.filter(s => s.id !== id))
-        alert('Сотрудник успешно удалён!')
+        alert('Кассир успешно удалён!')
     }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!formData.name || !formData.telegram) {
-            alert('Пожалуйста, заполните имя и Telegram')
+        if (!formData.business_id) {
+            alert('Пожалуйста, выберите заведение')
             return
         }
 
         if (editingStaff) {
+            // Редактирование
             setStaffList(staffList.map(s =>
-                s.id === editingStaff.id ? { ...s, ...formData } : s
+                s.id === editingStaff.id ? { ...s, ...formData, business_name: venues.find(v => v.id === formData.business_id)?.name || '' } : s
             ))
-            alert('Сотрудник успешно обновлён!')
+            alert('Кассир успешно обновлён!')
         } else {
+            // Добавление нового кассира
             const newStaff: Staff = {
                 id: staffList.length + 1,
                 ...formData,
+                business_name: venues.find(v => v.id === formData.business_id)?.name || '',
                 created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                last_active: null
             }
             setStaffList([...staffList, newStaff])
-            alert('Сотрудник успешно добавлен!')
+            alert('Кассир успешно привязан к заведению!')
         }
 
         setIsModalOpen(false)
     }
 
-    const toggleBusiness = (businessId: number) => {
-        setFormData(prev => {
-            const isSelected = prev.business_ids.includes(businessId)
-            return {
-                ...prev,
-                business_ids: isSelected
-                    ? prev.business_ids.filter(id => id !== businessId)
-                    : [...prev.business_ids, businessId]
-            }
-        })
-    }
+    const filteredStaff = staffList.filter(staff => {
+        const matchesSearch =
+            staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            staff.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            staff.business_name.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const filteredStaff = staffList.filter(staff =>
-        staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (staff.phone && staff.phone.includes(searchTerm)) ||
-        (staff.telegram && staff.telegram.toLowerCase().includes(searchTerm.toLowerCase()))
-    )
+        const matchesStatus =
+            filterStatus === 'all' ||
+            (filterStatus === 'active' && staff.is_active) ||
+            (filterStatus === 'inactive' && !staff.is_active)
+
+        return matchesSearch && matchesStatus
+    })
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', padding: '32px' }}>
@@ -195,12 +294,59 @@ export default function StaffPage() {
                     </div>
                 </div>
 
-                {/* Поиск и кнопка добавления */}
-                <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
-                    <div style={{
-                        flex: 1,
-                        position: 'relative'
-                    }}>
+                {/* Фильтры и поиск */}
+                <div style={{ display: 'flex', gap: '16px', marginTop: '24px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            onClick={() => setFilterStatus('all')}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: filterStatus === 'all' ? COLORS.primary : '#f5f5f5',
+                                color: filterStatus === 'all' ? 'white' : '#666',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            Все
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('active')}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: filterStatus === 'active' ? '#e8f5e9' : '#f5f5f5',
+                                color: filterStatus === 'active' ? '#2e7d32' : '#666',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '4px' }} />
+                            Активные
+                        </button>
+                        <button
+                            onClick={() => setFilterStatus('inactive')}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: filterStatus === 'inactive' ? '#ffebee' : '#f5f5f5',
+                                color: filterStatus === 'inactive' ? '#c62828' : '#666',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
+                            Ожидают
+                        </button>
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
                         <FontAwesomeIcon
                             icon={faSearch}
                             style={{
@@ -213,7 +359,7 @@ export default function StaffPage() {
                         />
                         <input
                             type="text"
-                            placeholder="Поиск по имени, телефону или Telegram..."
+                            placeholder="Поиск по имени, нику или заведению..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
@@ -226,6 +372,7 @@ export default function StaffPage() {
                             }}
                         />
                     </div>
+
                     <button
                         onClick={handleAddStaff}
                         style={{
@@ -240,7 +387,8 @@ export default function StaffPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryDark}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary}
@@ -265,17 +413,16 @@ export default function StaffPage() {
                         color: '#999'
                     }}>
                         <div style={{ fontSize: '64px', marginBottom: '16px' }}>👥</div>
-                        <p style={{ fontSize: '16px', marginBottom: '8px' }}>Нет сотрудников</p>
-                        <p style={{ fontSize: '14px' }}>Добавьте первого кассира</p>
+                        <p style={{ fontSize: '16px', marginBottom: '8px' }}>Нет кассиров</p>
+                        <p style={{ fontSize: '14px' }}>Добавьте первого кассира по коду активации</p>
                     </div>
                 ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ backgroundColor: '#f9fafb' }}>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Имя</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Телефон</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Telegram</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Заведения</th>
+                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Заведение</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Статус</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'right', fontWeight: '600', color: '#666', fontSize: '14px' }}>Действия</th>
                             </tr>
@@ -292,17 +439,17 @@ export default function StaffPage() {
                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
                                 >
                                     <td style={{ padding: '16px 24px', fontWeight: '600', color: COLORS.text }}>{staff.name}</td>
-                                    <td style={{ padding: '16px 24px', color: '#666' }}>{staff.phone || '—'}</td>
                                     <td style={{ padding: '16px 24px', color: '#666' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                             <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
-                                            <span>{staff.telegram || '—'}</span>
+                                            <span>{staff.username}</span>
                                         </div>
                                     </td>
                                     <td style={{ padding: '16px 24px', color: '#666' }}>
-                                        {staff.business_ids && staff.business_ids.length > 0
-                                            ? `${staff.business_ids.length} заведений`
-                                            : '—'}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <FontAwesomeIcon icon={faStore} color={COLORS.primary} size="sm" />
+                                            <span>{staff.business_name}</span>
+                                        </div>
                                     </td>
                                     <td style={{ padding: '16px 24px' }}>
                                         {staff.is_active ? (
@@ -314,6 +461,7 @@ export default function StaffPage() {
                                                 backgroundColor: '#e8f5e9',
                                                 color: '#2e7d32'
                                             }}>
+                                                <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '4px' }} />
                                                 Активен
                                             </span>
                                         ) : (
@@ -322,10 +470,11 @@ export default function StaffPage() {
                                                 borderRadius: '20px',
                                                 fontSize: '12px',
                                                 fontWeight: '600',
-                                                backgroundColor: '#ffebee',
-                                                color: '#c62828'
+                                                backgroundColor: '#fff3e0',
+                                                color: '#e65100'
                                             }}>
-                                                Неактивен
+                                                <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
+                                                Ожидает
                                             </span>
                                         )}
                                     </td>
@@ -438,19 +587,113 @@ export default function StaffPage() {
                             marginBottom: '24px',
                             textAlign: 'center'
                         }}>
-                            {editingStaff ? 'Редактировать кассира' : 'Добавить кассира'}
+                            {editingStaff ? 'Редактировать кассира' : 'Добавить кассира по коду'}
                         </h2>
 
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {!editingStaff ? (
+                                <>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
+                                            Код активации <span style={{ color: COLORS.primary }}>*</span>
+                                        </label>
+                                        <div style={{ position: 'relative' }}>
+                                            <input
+                                                type="text"
+                                                value={formData.activation_code}
+                                                onChange={(e) => {
+                                                    const value = e.target.value.replace(/\D/g, '')
+                                                    setFormData({ ...formData, activation_code: value.slice(0, 6) })
+                                                    if (value.length === 6) {
+                                                        searchStaffByCode(value)
+                                                    }
+                                                }}
+                                                placeholder="Введите 6-значный код"
+                                                maxLength={6}
+                                                required
+                                                style={{
+                                                    width: '100%',
+                                                    padding: '14px 16px',
+                                                    border: codeError ? `1px solid #c62828` : `1px solid ${COLORS.border}`,
+                                                    borderRadius: '12px',
+                                                    fontSize: '16px',
+                                                    color: COLORS.text
+                                                }}
+                                            />
+                                            {isLoading && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    right: '16px',
+                                                    top: '50%',
+                                                    transform: 'translateY(-50%)',
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    border: '2px solid #ccc',
+                                                    borderTop: `2px solid ${COLORS.primary}`,
+                                                    borderRadius: '50%',
+                                                    animation: 'spin 1s linear infinite'
+                                                }} />
+                                            )}
+                                        </div>
+                                        {codeError && (
+                                            <p style={{ color: '#c62828', fontSize: '12px', marginTop: '6px' }}>
+                                                {codeError}
+                                            </p>
+                                        )}
+                                        <p style={{ color: '#666', fontSize: '12px', marginTop: '6px' }}>
+                                            Кассир получает код в своём приложении Telegram
+                                        </p>
+                                    </div>
+
+                                    {formData.name && (
+                                        <div style={{ backgroundColor: '#f5f5f5', padding: '16px', borderRadius: '12px' }}>
+                                            <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#333' }}>
+                                                Найден кассир:
+                                            </p>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                                <div>
+                                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Имя</p>
+                                                    <p style={{ fontSize: '14px', fontWeight: '600', color: COLORS.text }}>{formData.name}</p>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Telegram</p>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
+                                                        <span style={{ fontSize: '14px', fontWeight: '600', color: COLORS.text }}>{formData.username}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div style={{ backgroundColor: '#f5f5f5', padding: '16px', borderRadius: '12px' }}>
+                                    <p style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', color: '#333' }}>
+                                        Кассир:
+                                    </p>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                        <div>
+                                            <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Имя</p>
+                                            <p style={{ fontSize: '14px', fontWeight: '600', color: COLORS.text }}>{formData.name}</p>
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: '12px', color: '#666', marginBottom: '4px' }}>Telegram</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
+                                                <span style={{ fontSize: '14px', fontWeight: '600', color: COLORS.text }}>{formData.username}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
                                 <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                                    Имя сотрудника <span style={{ color: COLORS.primary }}>*</span>
+                                    Заведение <span style={{ color: COLORS.primary }}>*</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    placeholder="Иван Иванов"
+                                <select
+                                    value={formData.business_id}
+                                    onChange={(e) => setFormData({ ...formData, business_id: parseInt(e.target.value) })}
                                     required
                                     style={{
                                         width: '100%',
@@ -458,129 +701,48 @@ export default function StaffPage() {
                                         border: `1px solid ${COLORS.border}`,
                                         borderRadius: '12px',
                                         fontSize: '16px',
-                                        color: COLORS.text
+                                        color: COLORS.text,
+                                        backgroundColor: 'white',
+                                        cursor: 'pointer'
                                     }}
-                                />
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                                        Телефон
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        placeholder="+7 (999) 123-45-67"
-                                        style={{
-                                            width: '100%',
-                                            padding: '14px 16px',
-                                            border: `1px solid ${COLORS.border}`,
-                                            borderRadius: '12px',
-                                            fontSize: '16px',
-                                            color: COLORS.text
-                                        }}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                                        Telegram <span style={{ color: COLORS.primary }}>*</span>
-                                    </label>
-                                    <div style={{ position: 'relative' }}>
-                                        <FontAwesomeIcon
-                                            icon={faPaperPlane}
-                                            style={{
-                                                position: 'absolute',
-                                                left: '14px',
-                                                top: '50%',
-                                                transform: 'translateY(-50%)',
-                                                color: '#0088cc'
-                                            }}
-                                        />
-                                        <input
-                                            type="text"
-                                            value={formData.telegram}
-                                            onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
-                                            placeholder="@username"
-                                            required
-                                            style={{
-                                                width: '100%',
-                                                padding: '14px 16px 14px 42px',
-                                                border: `1px solid ${COLORS.border}`,
-                                                borderRadius: '12px',
-                                                fontSize: '16px',
-                                                color: COLORS.text
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '12px' }}>
-                                    Привязать к заведениям
-                                </label>
-                                <div style={{
-                                    maxHeight: '200px',
-                                    overflowY: 'auto',
-                                    border: `1px solid ${COLORS.border}`,
-                                    borderRadius: '12px',
-                                    padding: '12px'
-                                }}>
+                                >
+                                    <option value={0}>Выберите заведение</option>
                                     {venues.map((venue) => (
-                                        <label
-                                            key={venue.id}
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px',
-                                                padding: '8px 12px',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                backgroundColor: formData.business_ids.includes(venue.id) ? '#e3f2fd' : 'transparent',
-                                                transition: 'background-color 0.2s'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
-                                            onMouseLeave={(e) => {
-                                                if (!formData.business_ids.includes(venue.id)) {
-                                                    e.currentTarget.style.backgroundColor = 'transparent'
-                                                }
-                                            }}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={formData.business_ids.includes(venue.id)}
-                                                onChange={() => toggleBusiness(venue.id)}
-                                                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                                            />
-                                            <FontAwesomeIcon icon={faStore} color={COLORS.primary} />
-                                            <span style={{ fontSize: '14px', color: COLORS.text }}>{venue.name}</span>
-                                        </label>
+                                        <option key={venue.id} value={venue.id}>
+                                            {venue.name}
+                                        </option>
                                     ))}
-                                </div>
+                                </select>
                             </div>
 
                             <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                                 <button
                                     type="submit"
+                                    disabled={isLoading || (!editingStaff && !formData.name)}
                                     style={{
                                         flex: 1,
                                         padding: '14px 24px',
-                                        backgroundColor: COLORS.primary,
+                                        backgroundColor: (isLoading || (!editingStaff && !formData.name)) ? '#ccc' : COLORS.primary,
                                         color: 'white',
                                         border: 'none',
                                         borderRadius: '14px',
-                                        cursor: 'pointer',
+                                        cursor: (isLoading || (!editingStaff && !formData.name)) ? 'not-allowed' : 'pointer',
                                         fontSize: '16px',
                                         fontWeight: '600',
                                         transition: 'all 0.3s'
                                     }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.primaryDark}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = COLORS.primary}
+                                    onMouseEnter={(e) => {
+                                        if (!isLoading && (editingStaff || formData.name)) {
+                                            e.currentTarget.style.backgroundColor = COLORS.primaryDark
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!isLoading && (editingStaff || formData.name)) {
+                                            e.currentTarget.style.backgroundColor = COLORS.primary
+                                        }
+                                    }}
                                 >
-                                    {editingStaff ? 'Сохранить изменения' : 'Добавить кассира'}
+                                    {editingStaff ? 'Сохранить изменения' : 'Привязать к заведению'}
                                 </button>
                                 <button
                                     type="button"
