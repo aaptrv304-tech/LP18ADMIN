@@ -7,11 +7,8 @@ import {
     faPen,
     faTrash,
     faStore,
-    faPhone,
-    faEnvelope,
-    faToggleOn,
-    faToggleOff,
-    faSearch
+    faSearch,
+    faPaperPlane
 } from '@fortawesome/free-solid-svg-icons'
 
 // Моковые данные для демонстрации
@@ -28,7 +25,7 @@ const mockStaff = [
         id: 1,
         name: 'Иван Иванов',
         phone: '+7 (999) 123-45-67',
-        email: 'ivan@example.com',
+        telegram: '@ivan_ivanov',
         role: 'cashier',
         is_active: true,
         business_ids: [1, 2],
@@ -39,8 +36,8 @@ const mockStaff = [
         id: 2,
         name: 'Мария Петрова',
         phone: '+7 (999) 234-56-78',
-        email: 'maria@example.com',
-        role: 'manager',
+        telegram: '@maria_petrova',
+        role: 'cashier',
         is_active: true,
         business_ids: [3],
         created_at: '2026-01-20T11:00:00Z',
@@ -50,7 +47,7 @@ const mockStaff = [
         id: 3,
         name: 'Алексей Смирнов',
         phone: '+7 (999) 345-67-89',
-        email: 'alex@example.com',
+        telegram: '@alex_smirnov',
         role: 'cashier',
         is_active: false,
         business_ids: [4, 5],
@@ -63,7 +60,7 @@ interface Staff {
     id: number
     name: string
     phone: string
-    email: string
+    telegram: string
     role: string
     is_active: boolean
     business_ids: number[]
@@ -79,8 +76,8 @@ export default function StaffPage() {
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
-        email: '',
-        role: 'cashier',
+        telegram: '',
+        role: 'cashier' as const, // Фиксированная роль
         is_active: true,
         business_ids: [] as number[]
     })
@@ -91,7 +88,7 @@ export default function StaffPage() {
         setFormData({
             name: '',
             phone: '',
-            email: '',
+            telegram: '',
             role: 'cashier',
             is_active: true,
             business_ids: []
@@ -104,8 +101,8 @@ export default function StaffPage() {
         setFormData({
             name: staff.name,
             phone: staff.phone || '',
-            email: staff.email || '',
-            role: staff.role,
+            telegram: staff.telegram || '',
+            role: 'cashier', // ✅ Просто строка, без строгой типизации
             is_active: staff.is_active,
             business_ids: staff.business_ids || []
         })
@@ -122,19 +119,17 @@ export default function StaffPage() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!formData.name) {
-            alert('Пожалуйста, заполните имя сотрудника')
+        if (!formData.name || !formData.telegram) {
+            alert('Пожалуйста, заполните имя и Telegram')
             return
         }
 
         if (editingStaff) {
-            // Редактирование
             setStaffList(staffList.map(s =>
                 s.id === editingStaff.id ? { ...s, ...formData } : s
             ))
             alert('Сотрудник успешно обновлён!')
         } else {
-            // Добавление
             const newStaff: Staff = {
                 id: staffList.length + 1,
                 ...formData,
@@ -163,11 +158,11 @@ export default function StaffPage() {
     const filteredStaff = staffList.filter(staff =>
         staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (staff.phone && staff.phone.includes(searchTerm)) ||
-        (staff.email && staff.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        (staff.telegram && staff.telegram.toLowerCase().includes(searchTerm.toLowerCase()))
     )
 
     return (
-        <div style={{ marginLeft: '280px', padding: '32px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', padding: '32px' }}>
             {/* Заголовок */}
             <div style={{ marginBottom: '32px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -195,7 +190,7 @@ export default function StaffPage() {
                             Персонал
                         </h1>
                         <p style={{ color: '#666', fontSize: '14px' }}>
-                            Управление кассирами и сотрудниками заведений
+                            Управление кассирами и их привязкой к заведениям
                         </p>
                     </div>
                 </div>
@@ -218,7 +213,7 @@ export default function StaffPage() {
                         />
                         <input
                             type="text"
-                            placeholder="Поиск по имени, телефону или email..."
+                            placeholder="Поиск по имени, телефону или Telegram..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
@@ -279,8 +274,7 @@ export default function StaffPage() {
                             <tr style={{ backgroundColor: '#f9fafb' }}>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Имя</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Телефон</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Email</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Роль</th>
+                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Telegram</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Заведения</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Статус</th>
                                 <th style={{ padding: '16px 24px', textAlign: 'right', fontWeight: '600', color: '#666', fontSize: '14px' }}>Действия</th>
@@ -299,18 +293,11 @@ export default function StaffPage() {
                                 >
                                     <td style={{ padding: '16px 24px', fontWeight: '600', color: COLORS.text }}>{staff.name}</td>
                                     <td style={{ padding: '16px 24px', color: '#666' }}>{staff.phone || '—'}</td>
-                                    <td style={{ padding: '16px 24px', color: '#666' }}>{staff.email || '—'}</td>
-                                    <td style={{ padding: '16px 24px' }}>
-                                        <span style={{
-                                            padding: '4px 12px',
-                                            borderRadius: '20px',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            backgroundColor: staff.role === 'cashier' ? '#e3f2fd' : '#e8f5e9',
-                                            color: staff.role === 'cashier' ? '#1976d2' : '#2e7d32'
-                                        }}>
-                                            {staff.role === 'cashier' ? 'Кассир' : 'Менеджер'}
-                                        </span>
+                                    <td style={{ padding: '16px 24px', color: '#666' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
+                                            <span>{staff.telegram || '—'}</span>
+                                        </div>
                                     </td>
                                     <td style={{ padding: '16px 24px', color: '#666' }}>
                                         {staff.business_ids && staff.business_ids.length > 0
@@ -499,46 +486,36 @@ export default function StaffPage() {
 
                                 <div>
                                     <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                                        Email
+                                        Telegram <span style={{ color: COLORS.primary }}>*</span>
                                     </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        placeholder="ivan@example.com"
-                                        style={{
-                                            width: '100%',
-                                            padding: '14px 16px',
-                                            border: `1px solid ${COLORS.border}`,
-                                            borderRadius: '12px',
-                                            fontSize: '16px',
-                                            color: COLORS.text
-                                        }}
-                                    />
+                                    <div style={{ position: 'relative' }}>
+                                        <FontAwesomeIcon
+                                            icon={faPaperPlane}
+                                            style={{
+                                                position: 'absolute',
+                                                left: '14px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                color: '#0088cc'
+                                            }}
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.telegram}
+                                            onChange={(e) => setFormData({ ...formData, telegram: e.target.value })}
+                                            placeholder="@username"
+                                            required
+                                            style={{
+                                                width: '100%',
+                                                padding: '14px 16px 14px 42px',
+                                                border: `1px solid ${COLORS.border}`,
+                                                borderRadius: '12px',
+                                                fontSize: '16px',
+                                                color: COLORS.text
+                                            }}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '8px' }}>
-                                    Роль
-                                </label>
-                                <select
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '14px 16px',
-                                        border: `1px solid ${COLORS.border}`,
-                                        borderRadius: '12px',
-                                        fontSize: '16px',
-                                        color: COLORS.text,
-                                        backgroundColor: 'white',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <option value="cashier">Кассир</option>
-                                    <option value="manager">Менеджер</option>
-                                </select>
                             </div>
 
                             <div>
