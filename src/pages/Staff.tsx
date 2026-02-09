@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { COLORS } from './Landing'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -10,7 +10,10 @@ import {
     faSearch,
     faPaperPlane,
     faClock,
-    faCheckCircle
+    faCheckCircle,
+    faChevronDown,
+    faChevronUp,
+    faUser
 } from '@fortawesome/free-solid-svg-icons'
 
 // Моковые данные для демонстрации
@@ -22,7 +25,6 @@ const mockVenues = [
     { id: 5, name: 'Ресторан Вкусно' }
 ]
 
-// Моковые данные кассиров (одна запись = один кассир в одном заведении)
 const mockStaff = [
     {
         id: 1,
@@ -37,7 +39,7 @@ const mockStaff = [
         role: 'cashier',
         is_active: true,
         created_at: '2026-01-15T10:00:00Z',
-        last_active: '2026-02-07T14:30:00Z' // ← Строка, не null
+        last_active: '2026-02-07T14:30:00Z'
     },
     {
         id: 2,
@@ -52,7 +54,7 @@ const mockStaff = [
         role: 'cashier',
         is_active: true,
         created_at: '2026-01-20T11:00:00Z',
-        last_active: '2026-02-06T09:15:00Z' // ← Строка
+        last_active: '2026-02-06T09:15:00Z'
     },
     {
         id: 3,
@@ -67,7 +69,7 @@ const mockStaff = [
         role: 'cashier',
         is_active: false,
         created_at: '2026-01-25T12:00:00Z',
-        last_active: null // ← Теперь допустимо
+        last_active: null
     },
     {
         id: 4,
@@ -82,7 +84,7 @@ const mockStaff = [
         role: 'cashier',
         is_active: true,
         created_at: '2026-02-01T10:00:00Z',
-        last_active: '2026-02-07T16:45:00Z' // ← Строка
+        last_active: '2026-02-07T16:45:00Z'
     },
     {
         id: 5,
@@ -97,7 +99,22 @@ const mockStaff = [
         role: 'cashier',
         is_active: true,
         created_at: '2026-02-01T10:05:00Z',
-        last_active: '2026-02-07T17:00:00Z' // ← Строка
+        last_active: '2026-02-07T17:00:00Z'
+    },
+    {
+        id: 6,
+        name: 'Анна Козлова',
+        telegram_id: 5555555555,
+        username: '@anna_kozlova',
+        first_name: 'Анна',
+        last_name: 'Козлова',
+        activation_code: '555555',
+        business_id: 2,
+        business_name: 'Салон Красоты Люкс',
+        role: 'cashier',
+        is_active: true,
+        created_at: '2026-02-05T09:00:00Z',
+        last_active: '2026-02-07T10:30:00Z'
     }
 ]
 
@@ -114,7 +131,7 @@ interface Staff {
     role: string
     is_active: boolean
     created_at: string
-    last_active: string | null // ← ИЗМЕНЕНО: добавлен тип null
+    last_active: string | null
 }
 
 export default function StaffPage() {
@@ -137,30 +154,27 @@ export default function StaffPage() {
     const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
     const [isLoading, setIsLoading] = useState(false)
     const [codeError, setCodeError] = useState('')
+    const [expandedVenues, setExpandedVenues] = useState<number[]>([]) // ← ДОБАВЛЕНО: отслеживаем развёрнутые заведения
 
     // Симуляция поиска кассира по коду
     const searchStaffByCode = async (code: string) => {
         setIsLoading(true)
         setCodeError('')
 
-        // Валидация кода (6 цифр)
         if (!/^\d{6}$/.test(code)) {
             setCodeError('Код должен состоять из 6 цифр')
             setIsLoading(false)
             return
         }
 
-        // Имитация запроса к бэкенду
         await new Promise(resolve => setTimeout(resolve, 800))
 
-        // Ищем кассира по коду в моковых данных
         const found = mockStaff.find(s => s.activation_code === code && !s.business_id)
 
         if (found) {
-            // Заполняем форму данными кассира
             setFormData({
                 activation_code: found.activation_code,
-                business_id: 0, // Пока не выбрано
+                business_id: 0,
                 name: found.name,
                 username: found.username,
                 first_name: found.first_name,
@@ -225,13 +239,11 @@ export default function StaffPage() {
         }
 
         if (editingStaff) {
-            // Редактирование
             setStaffList(staffList.map(s =>
                 s.id === editingStaff.id ? { ...s, ...formData, business_name: venues.find(v => v.id === formData.business_id)?.name || '' } : s
             ))
             alert('Кассир успешно обновлён!')
         } else {
-            // Добавление нового кассира
             const newStaff: Staff = {
                 id: staffList.length + 1,
                 ...formData,
@@ -246,6 +258,16 @@ export default function StaffPage() {
         setIsModalOpen(false)
     }
 
+    // Переключение развёрнутого состояния заведения
+    const toggleVenue = (venueId: number) => {
+        setExpandedVenues(prev =>
+            prev.includes(venueId)
+                ? prev.filter(id => id !== venueId)
+                : [...prev, venueId]
+        )
+    }
+
+    // Фильтрация кассиров
     const filteredStaff = staffList.filter(staff => {
         const matchesSearch =
             staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -259,6 +281,12 @@ export default function StaffPage() {
 
         return matchesSearch && matchesStatus
     })
+
+    // Группируем отфильтрованных кассиров
+    const filteredGroupedStaff = venues.map(venue => ({
+        venue,
+        staff: filteredStaff.filter(s => s.business_id === venue.id)
+    })).filter(group => group.staff.length > 0)
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', padding: '32px' }}>
@@ -289,7 +317,7 @@ export default function StaffPage() {
                             Персонал
                         </h1>
                         <p style={{ color: '#666', fontSize: '14px' }}>
-                            Управление кассирами и их привязкой к заведениям
+                            Управление кассирами по заведениям
                         </p>
                     </div>
                 </div>
@@ -359,7 +387,7 @@ export default function StaffPage() {
                         />
                         <input
                             type="text"
-                            placeholder="Поиск по имени, нику или заведению..."
+                            placeholder="Поиск по имени или нику..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
@@ -399,15 +427,13 @@ export default function StaffPage() {
                 </div>
             </div>
 
-            {/* Список сотрудников */}
-            <div style={{
-                backgroundColor: 'white',
-                borderRadius: '16px',
-                border: `1px solid ${COLORS.border}`,
-                overflow: 'hidden'
-            }}>
-                {filteredStaff.length === 0 ? (
+            {/* Список кассиров сгруппированный по заведениям */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {filteredGroupedStaff.length === 0 ? (
                     <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '16px',
+                        border: `1px solid ${COLORS.border}`,
                         padding: '64px 32px',
                         textAlign: 'center',
                         color: '#999'
@@ -417,115 +443,210 @@ export default function StaffPage() {
                         <p style={{ fontSize: '14px' }}>Добавьте первого кассира по коду активации</p>
                     </div>
                 ) : (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ backgroundColor: '#f9fafb' }}>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Имя</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Telegram</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Заведение</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '14px' }}>Статус</th>
-                                <th style={{ padding: '16px 24px', textAlign: 'right', fontWeight: '600', color: '#666', fontSize: '14px' }}>Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredStaff.map((staff) => (
-                                <tr
-                                    key={staff.id}
-                                    style={{
-                                        borderBottom: `1px solid ${COLORS.border}`,
-                                        transition: 'background-color 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                                >
-                                    <td style={{ padding: '16px 24px', fontWeight: '600', color: COLORS.text }}>{staff.name}</td>
-                                    <td style={{ padding: '16px 24px', color: '#666' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
-                                            <span>{staff.username}</span>
+                    filteredGroupedStaff.map((group) => (
+                        <div
+                            key={group.venue.id}
+                            style={{
+                                backgroundColor: 'white',
+                                borderRadius: '16px',
+                                border: `1px solid ${COLORS.border}`,
+                                overflow: 'hidden'
+                            }}
+                        >
+                            {/* Заголовок заведения */}
+                            <div
+                                onClick={() => toggleVenue(group.venue.id)}
+                                style={{
+                                    padding: '16px 24px',
+                                    backgroundColor: '#f9fafb',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    borderBottom: expandedVenues.includes(group.venue.id) ? `1px solid ${COLORS.border}` : 'none',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <FontAwesomeIcon icon={faStore} color={COLORS.primary} size="lg" />
+                                    <div>
+                                        <h3 style={{ fontSize: '16px', fontWeight: '600', color: COLORS.text, margin: 0 }}>
+                                            {group.venue.name}
+                                        </h3>
+                                        <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>
+                                            {group.staff.length} кассир{group.staff.length === 1 ? '' : group.staff.length < 5 ? 'а' : 'ов'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <span style={{
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            backgroundColor: '#e8f5e9',
+                                            color: '#2e7d32'
+                                        }}>
+                                            {group.staff.filter(s => s.is_active).length} активных
+                                        </span>
+                                        <span style={{
+                                            padding: '4px 12px',
+                                            borderRadius: '20px',
+                                            fontSize: '12px',
+                                            fontWeight: '600',
+                                            backgroundColor: '#fff3e0',
+                                            color: '#e65100'
+                                        }}>
+                                            {group.staff.filter(s => !s.is_active).length} ожидают
+                                        </span>
+                                    </div>
+                                    <FontAwesomeIcon
+                                        icon={expandedVenues.includes(group.venue.id) ? faChevronUp : faChevronDown}
+                                        color={COLORS.primary}
+                                        size="lg"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Список кассиров (показываем только если секция развёрнута) */}
+                            {expandedVenues.includes(group.venue.id) && (
+                                <div>
+                                    {group.staff.length === 0 ? (
+                                        <div style={{
+                                            padding: '32px',
+                                            textAlign: 'center',
+                                            color: '#999'
+                                        }}>
+                                            <p style={{ fontSize: '14px' }}>В этом заведении пока нет кассиров</p>
                                         </div>
-                                    </td>
-                                    <td style={{ padding: '16px 24px', color: '#666' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <FontAwesomeIcon icon={faStore} color={COLORS.primary} size="sm" />
-                                            <span>{staff.business_name}</span>
-                                        </div>
-                                    </td>
-                                    <td style={{ padding: '16px 24px' }}>
-                                        {staff.is_active ? (
-                                            <span style={{
-                                                padding: '4px 12px',
-                                                borderRadius: '20px',
-                                                fontSize: '12px',
-                                                fontWeight: '600',
-                                                backgroundColor: '#e8f5e9',
-                                                color: '#2e7d32'
-                                            }}>
-                                                <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '4px' }} />
-                                                Активен
-                                            </span>
-                                        ) : (
-                                            <span style={{
-                                                padding: '4px 12px',
-                                                borderRadius: '20px',
-                                                fontSize: '12px',
-                                                fontWeight: '600',
-                                                backgroundColor: '#fff3e0',
-                                                color: '#e65100'
-                                            }}>
-                                                <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
-                                                Ожидает
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            <button
-                                                onClick={() => handleEditStaff(staff)}
-                                                style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '8px',
-                                                    border: 'none',
-                                                    backgroundColor: '#e3f2fd',
-                                                    color: '#1976d2',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#bbdefb'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
-                                            >
-                                                <FontAwesomeIcon icon={faPen} size="sm" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteStaff(staff.id)}
-                                                style={{
-                                                    width: '32px',
-                                                    height: '32px',
-                                                    borderRadius: '8px',
-                                                    border: 'none',
-                                                    backgroundColor: '#ffebee',
-                                                    color: '#c62828',
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ffcdd2'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffebee'}
-                                            >
-                                                <FontAwesomeIcon icon={faTrash} size="sm" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    ) : (
+                                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <thead>
+                                                <tr style={{ backgroundColor: '#fafafa' }}>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '13px', textTransform: 'uppercase' }}>Кассир</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '13px', textTransform: 'uppercase' }}>Telegram</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'left', fontWeight: '600', color: '#666', fontSize: '13px', textTransform: 'uppercase' }}>Статус</th>
+                                                    <th style={{ padding: '12px 24px', textAlign: 'right', fontWeight: '600', color: '#666', fontSize: '13px', textTransform: 'uppercase' }}>Действия</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {group.staff.map((staff) => (
+                                                    <tr
+                                                        key={staff.id}
+                                                        style={{
+                                                            borderBottom: `1px solid ${COLORS.border}`,
+                                                            transition: 'background-color 0.2s'
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                                    >
+                                                        <td style={{ padding: '16px 24px', fontWeight: '600', color: COLORS.text }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <div style={{
+                                                                    width: '32px',
+                                                                    height: '32px',
+                                                                    backgroundColor: COLORS.primary + '15',
+                                                                    borderRadius: '8px',
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    fontSize: '16px',
+                                                                    color: COLORS.primary
+                                                                }}>
+                                                                    <FontAwesomeIcon icon={faUser} />
+                                                                </div>
+                                                                <span>{staff.name}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '16px 24px', color: '#666' }}>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <FontAwesomeIcon icon={faPaperPlane} color="#0088cc" size="sm" />
+                                                                <span>{staff.username}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td style={{ padding: '16px 24px' }}>
+                                                            {staff.is_active ? (
+                                                                <span style={{
+                                                                    padding: '4px 12px',
+                                                                    borderRadius: '20px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '600',
+                                                                    backgroundColor: '#e8f5e9',
+                                                                    color: '#2e7d32'
+                                                                }}>
+                                                                    <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '4px' }} />
+                                                                    Активен
+                                                                </span>
+                                                            ) : (
+                                                                <span style={{
+                                                                    padding: '4px 12px',
+                                                                    borderRadius: '20px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: '600',
+                                                                    backgroundColor: '#fff3e0',
+                                                                    color: '#e65100'
+                                                                }}>
+                                                                    <FontAwesomeIcon icon={faClock} style={{ marginRight: '4px' }} />
+                                                                    Ожидает
+                                                                </span>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                                <button
+                                                                    onClick={() => handleEditStaff(staff)}
+                                                                    style={{
+                                                                        width: '32px',
+                                                                        height: '32px',
+                                                                        borderRadius: '8px',
+                                                                        border: 'none',
+                                                                        backgroundColor: '#e3f2fd',
+                                                                        color: '#1976d2',
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#bbdefb'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
+                                                                >
+                                                                    <FontAwesomeIcon icon={faPen} size="sm" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteStaff(staff.id)}
+                                                                    style={{
+                                                                        width: '32px',
+                                                                        height: '32px',
+                                                                        borderRadius: '8px',
+                                                                        border: 'none',
+                                                                        backgroundColor: '#ffebee',
+                                                                        color: '#c62828',
+                                                                        cursor: 'pointer',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        transition: 'all 0.2s'
+                                                                    }}
+                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ffcdd2'}
+                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffebee'}
+                                                                >
+                                                                    <FontAwesomeIcon icon={faTrash} size="sm" />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))
                 )}
             </div>
 
