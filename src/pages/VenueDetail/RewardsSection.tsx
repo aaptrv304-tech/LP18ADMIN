@@ -453,6 +453,7 @@ export default function RewardsSection({ businessId }: { businessId: number }) {
                   type="number"
                   value={formData.points_cost}
                   onChange={(e) => setFormData({ ...formData, points_cost: e.target.value })}
+                  onWheel={(e) => e.currentTarget.blur()} // ← ОТКЛЮЧАЕМ ПРОКРУТКУ КОЛЁСИКОМ
                   placeholder="100"
                   required
                   min="1"
