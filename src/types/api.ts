@@ -4,9 +4,9 @@
 
 export interface Admin {
   id: number
-  telegram_id?: string
+  telegram_id?: number  // ← изменили с string на number
   email: string
-  business_name: string
+  full_name?: string    // ← добавили (опциональное)
   is_active: boolean
   created_at: string
 }
@@ -40,12 +40,14 @@ export interface Venue {
   image_url?: string
   admin_id: number
   created_at: string
-  updated_at: string
+  updated_at?: string  // ← добавили опциональное
   // Дополнительные поля (если есть)
   phone?: string
   website?: string
   rating?: number
   visits_count?: number
+  category?: string
+  is_active?: boolean
 }
 
 // ========================================

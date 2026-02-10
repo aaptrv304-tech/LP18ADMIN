@@ -17,17 +17,20 @@ export default function Layout({ title, breadcrumb = [], children }: LayoutProps
     return null
   }
 
+  // Определяем имя для отображения: сначала полное имя, потом email
+  const displayName = user.full_name || user.email || 'Администратор'
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
       {/* Сайдбар */}
-      <Sidebar 
-        businessName={user.business_name} 
-        onLogout={logout} 
+      <Sidebar
+        userName={displayName}
+        onLogout={logout}
       />
-      
+
       {/* Основной контент */}
-      <div style={{ 
-        flex: 1, 
+      <div style={{
+        flex: 1,
         marginLeft: '280px',
         display: 'flex',
         flexDirection: 'column'
@@ -36,9 +39,9 @@ export default function Layout({ title, breadcrumb = [], children }: LayoutProps
         {title && (
           <Header title={title} breadcrumb={breadcrumb} />
         )}
-        
+
         {/* Контент страницы */}
-        <div style={{ 
+        <div style={{
           padding: title ? '96px 48px 48px' : '48px 48px 48px',
           minHeight: 'calc(100vh - 96px)',
           flex: 1

@@ -10,11 +10,11 @@ import {
 import { COLORS } from '../../../pages/Landing'
 
 interface SidebarProps {
-  businessName: string
+  userName: string  // ← изменили с businessName на userName
   onLogout: () => void
 }
 
-export default function Sidebar({ businessName, onLogout }: SidebarProps) {
+export default function Sidebar({ userName, onLogout }: SidebarProps) {
   const menuItems = [
     { path: '/dashboard', label: 'Статистика', icon: faChartLine },
     { path: '/venues', label: 'Заведения', icon: faStore },
@@ -128,7 +128,7 @@ export default function Sidebar({ businessName, onLogout }: SidebarProps) {
             fontSize: '18px',
             fontWeight: 'bold'
           }}>
-            {businessName.charAt(0)}
+            {userName.charAt(0)}  {/* ← изменили с businessName на userName */}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
@@ -139,7 +139,7 @@ export default function Sidebar({ businessName, onLogout }: SidebarProps) {
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
             }}>
-              {businessName}
+              {userName}  {/* ← изменили с businessName на userName */}
             </div>
           </div>
           <button
